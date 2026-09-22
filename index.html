@@ -1,298 +1,46 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meine Rezepte</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kochbuch</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-  <!-- Kopfbereich -->
-  <header class="topbar">
-    <button class="logo-button" onclick="showHome()">
-      🍴 Meine Rezepte
-    </button>
+    <header class="header">
+        <div class="header-inner">
+            <h1>Kochbuch</h1>
+            <p>Meine Lieblingsrezepte</p>
+        </div>
+    </header>
 
-    <button class="add-button" onclick="showAddRecipe()">
-      ＋ Rezept hinzufügen
-    </button>
-  </header>
-
-
-  <main>
-
-    <!-- Startseite -->
-    <section id="homeView">
-
-      <div class="hero">
-        <h1>Meine Rezepte</h1>
-        <p>Lieblingsrezepte sammeln, entdecken und teilen.</p>
-      </div>
-
-
-      <!-- Suche -->
-      <div class="search-box">
-        <input
-          type="search"
-          id="searchInput"
-          placeholder="🔎 Rezepte durchsuchen ..."
-          oninput="renderRecipes()"
-        >
-      </div>
-
-
-      <!-- Kategorien -->
-      <div class="categories" id="categoryButtons">
-        <button class="category-button active" onclick="filterCategory('Alle', this)">
-          Alle
-        </button>
-
-        <button class="category-button" onclick="filterCategory('Hauptgericht', this)">
-          Hauptgerichte
-        </button>
-
-        <button class="category-button" onclick="filterCategory('Beilage', this)">
-          Beilagen
-        </button>
-
-        <button class="category-button" onclick="filterCategory('Dessert', this)">
-          Desserts
-        </button>
-
-        <button class="category-button" onclick="filterCategory('Suppe', this)">
-          Suppen
-        </button>
-
-        <button class="category-button" onclick="filterCategory('Frühstück', this)">
-          Frühstück
-        </button>
-
-        <button class="category-button" onclick="filterCategory('Sonstiges', this)">
-          Sonstiges
-        </button>
-      </div>
-
-
-      <!-- Rezepte -->
-      <div id="recipeGrid" class="recipe-grid"></div>
-
-    </section>
-
-
-
-    <!-- Rezeptformular -->
-    <section id="formView" class="hidden">
-
-      <div class="form-container">
-
-        <button class="back-button" onclick="showHome()">
-          ← Zurück
-        </button>
-
-        <h2 id="formTitle">Rezept hinzufügen</h2>
-
-        <form id="recipeForm">
-
-          <input type="hidden" id="editRecipeId">
-
-
-          <label for="recipeName">
-            Rezeptname
-          </label>
-
-          <input
-            type="text"
-            id="recipeName"
-            placeholder="z. B. Spaghetti Bolognese"
-            required
-          >
-
-
-          <label for="recipeCategory">
-            Kategorie
-          </label>
-
-          <select id="recipeCategory" required>
-            <option value="">Bitte auswählen</option>
-            <option value="Hauptgericht">Hauptgericht</option>
-            <option value="Beilage">Beilage</option>
-            <option value="Dessert">Dessert</option>
-            <option value="Suppe">Suppe</option>
-            <option value="Frühstück">Frühstück</option>
-            <option value="Sonstiges">Sonstiges</option>
-          </select>
-
-
-          <label for="recipeAuthor">
-            Von wem ist das Rezept?
-          </label>
-
-          <input
-            type="text"
-            id="recipeAuthor"
-            placeholder="z. B. Marlene"
-          >
-
-
-          <label for="recipeIngredients">
-            Zutaten
-          </label>
-
-          <textarea
-            id="recipeIngredients"
-            rows="8"
-            placeholder="Eine Zutat pro Zeile&#10;&#10;500 g Nudeln&#10;400 g Hackfleisch&#10;1 Zwiebel"
-            required
-          ></textarea>
-
-
-          <label for="recipeSteps">
-            Zubereitung
-          </label>
-
-          <textarea
-            id="recipeSteps"
-            rows="10"
-            placeholder="Beschreibe hier die einzelnen Zubereitungsschritte ..."
-            required
-          ></textarea>
-
-
-          <label for="recipeImage">
-            Foto
-          </label>
-
-          <input
-            type="file"
-            id="recipeImage"
-            accept="image/*"
-          >
-
-
-          <div class="form-buttons">
-
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="showHome()"
+    <main class="container">
+        <section class="intro">
+            <h2>Rezepte</h2>
+            <input
+                type="search"
+                id="search"
+                placeholder="Rezepte durchsuchen ..."
+                aria-label="Rezepte durchsuchen"
             >
-              Abbrechen
+        </section>
+
+        <section id="recipe-list" class="recipe-grid">
+            <p class="loading">Rezepte werden geladen ...</p>
+        </section>
+    </main>
+
+    <div id="recipe-modal" class="modal hidden">
+        <div class="modal-content">
+            <button id="close-modal" class="close-button" aria-label="Schließen">
+                ×
             </button>
 
-            <button
-              type="submit"
-              class="primary-button"
-            >
-              Rezept speichern
-            </button>
+            <div id="recipe-detail"></div>
+        </div>
+    </div>
 
-          </div>
-
-        </form>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- Rezeptdetail -->
-    <section id="detailView" class="hidden">
-
-      <div class="detail-container">
-
-        <button class="back-button" onclick="showHome()">
-          ← Zurück zu den Rezepten
-        </button>
-
-        <div id="recipeDetail"></div>
-
-      </div>
-
-    </section>
-
-  </main>
-
-
-  <!--
-    Unsichtbares E-Mail-Formular.
-
-    Dieses Formular wird später von app.js verwendet.
-    Die eigentliche Übermittlung erfolgt über FormSubmit.
-  -->
-  <form
-    id="emailRecipeForm"
-    action="https://formsubmit.co/marlene.schmidt@Hotmail.de"
-    method="POST"
-    style="display:none;"
-  >
-
-    <input
-      type="hidden"
-      name="_subject"
-      value="Neues Rezept für Meine Rezepte"
-    >
-
-    <input
-      type="hidden"
-      name="_captcha"
-      value="false"
-    >
-
-    <input
-      type="hidden"
-      name="_template"
-      value="table"
-    >
-
-    <input
-      type="hidden"
-      name="_next"
-      value=""
-    >
-
-    <input
-      type="hidden"
-      name="Rezeptname"
-      id="emailRecipeName"
-    >
-
-    <input
-      type="hidden"
-      name="Kategorie"
-      id="emailRecipeCategory"
-    >
-
-    <input
-      type="hidden"
-      name="Von"
-      id="emailRecipeAuthor"
-    >
-
-    <input
-      type="hidden"
-      name="Zutaten"
-      id="emailRecipeIngredients"
-    >
-
-    <input
-      type="hidden"
-      name="Zubereitung"
-      id="emailRecipeSteps"
-    >
-
-    <input
-      type="hidden"
-      name="Absender"
-      id="emailRecipeSender"
-    >
-
-  </form>
-
-
-  <script src="app.js"></script>
-
+    <script src="app.js"></script>
 </body>
 </html>
