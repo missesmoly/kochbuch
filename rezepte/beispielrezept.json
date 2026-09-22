@@ -1,0 +1,28 @@
+{
+    "name": "Spaghetti Aglio e Olio",
+    "description": "Ein einfaches, schnelles und klassisches italienisches Nudelgericht.",
+    "category": "Pasta",
+    "duration": "20 Min.",
+    "portions": "2 Portionen",
+
+    "ingredients": [
+        "200 g Spaghetti",
+        "4 Knoblauchzehen",
+        "4 EL Olivenöl",
+        "1 kleine Chilischote",
+        "1 Handvoll frische Petersilie",
+        "Salz",
+        "Pfeffer"
+    ],
+
+    "steps": [
+        "Spaghetti in reichlich Salzwasser al dente kochen.",
+        "Knoblauch schälen und in dünne Scheiben schneiden.",
+        "Olivenöl in einer Pfanne bei niedriger bis mittlerer Hitze erwärmen.",
+        "Knoblauch und fein geschnittene Chilischote hinzugeben und kurz anbraten.",
+        "Die gekochten Spaghetti direkt in die Pfanne geben und gut vermischen.",
+        "Etwas Nudelwasser hinzufügen und alles miteinander vermengen.",
+        "Mit Salz und Pfeffer abschmecken.",
+        "Petersilie hacken, über die Pasta geben und sofort servieren."
+    ]
+}
