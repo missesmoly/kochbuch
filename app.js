@@ -1,169 +1,157 @@
+const recipeList = document.getElementById("recipe-list");
+const searchInput = document.getElementById("search");
+
+const modal = document.getElementById("recipe-modal");
+const modalContent = document.getElementById("recipe-detail");
+const closeModal = document.getElementById("close-modal");
+
 let recipes = [];
-
-
-document.addEventListener("DOMContentLoaded", async function () {
-    await loadRecipes();
-});
-
 
 async function loadRecipes() {
     try {
-        const indexResponse = await fetch("rezepte/index.json");
+        const response = await fetch("rezepte/index.json");
 
-        if (!indexResponse.ok) {
-            throw new Error("Die Rezeptliste konnte nicht geladen werden.");
+        if (!response.ok) {
+            throw new Error("Rezeptliste konnte nicht geladen werden.");
         }
 
-        const recipeFiles = await indexResponse.json();
+        const recipeIndex = await response.json();
 
-        recipes = [];
-
-        for (const file of recipeFiles) {
-            const response = await fetch("rezepte/" + file);
-
-            if (!response.ok) {
-                console.error("Rezept konnte nicht geladen werden:", file);
-                continue;
-            }
-
-            const recipe = await response.json();
-            recipes.push(recipe);
-        }
-
-        renderRecipes();
-
+        recipes = recipeIndex;
+        renderRecipes(recipes);
     } catch (error) {
-        console.error("Fehler beim Laden der Rezepte:", error);
+        console.error(error);
 
-        const recipeGrid = document.getElementById("recipeGrid");
-
-        if (recipeGrid) {
-            recipeGrid.innerHTML = `
-                <p>Die Rezepte konnten leider nicht geladen werden.</p>
-            `;
-        }
+        recipeList.innerHTML = `
+            <p class="empty">
+                Die Rezepte konnten nicht geladen werden.
+            </p>
+        `;
     }
 }
 
-
-function renderRecipes() {
-    const recipeGrid = document.getElementById("recipeGrid");
-
-    if (!recipeGrid) {
-        return;
-    }
-
-    if (recipes.length === 0) {
-        recipeGrid.innerHTML = `
-            <p>Noch keine Rezepte vorhanden.</p>
+function renderRecipes(recipeData) {
+    if (recipeData.length === 0) {
+        recipeList.innerHTML = `
+            <p class="empty">Keine Rezepte gefunden.</p>
         `;
         return;
     }
 
-    recipeGrid.innerHTML = recipes.map(function (recipe) {
-        return `
-            <div class="recipe-card" onclick="showRecipe('${recipe.id}')">
-                <div class="recipe-card-content">
-                    <h3>${escapeHTML(recipe.name)}</h3>
-                    <p>${escapeHTML(recipe.category)}</p>
-                    <small>von ${escapeHTML(recipe.author)}</small>
+    recipeList.innerHTML = recipeData
+        .map(recipe => `
+            <article
+                class="recipe-card"
+                data-file="${recipe.file}"
+            >
+                <h3>${escapeHtml(recipe.name)}</h3>
+                <p>${escapeHtml(recipe.description || "")}</p>
+
+                <div class="recipe-meta">
+                    <span>${escapeHtml(recipe.category || "")}</span>
+                    <span>${escapeHtml(recipe.duration || "")}</span>
                 </div>
+            </article>
+        `)
+        .join("");
+
+    document.querySelectorAll(".recipe-card").forEach(card => {
+        card.addEventListener("click", () => {
+            openRecipe(card.dataset.file);
+        });
+    });
+}
+
+async function openRecipe(file) {
+    try {
+        const response = await fetch(`rezepte/${file}`);
+
+        if (!response.ok) {
+            throw new Error("Rezept konnte nicht geladen werden.");
+        }
+
+        const recipe = await response.json();
+
+        modalContent.innerHTML = `
+            <div class="recipe-detail">
+                <h2>${escapeHtml(recipe.name)}</h2>
+
+                <p class="recipe-description">
+                    ${escapeHtml(recipe.description || "")}
+                </p>
+
+                <div class="recipe-meta">
+                    <span>${escapeHtml(recipe.portions || "")}</span>
+                    <span>${escapeHtml(recipe.duration || "")}</span>
+                </div>
+
+                <h3>Zutaten</h3>
+
+                <ul>
+                    ${recipe.ingredients
+                        .map(ingredient => `
+                            <li>
+                                ${escapeHtml(ingredient)}
+                            </li>
+                        `)
+                        .join("")}
+                </ul>
+
+                <h3>Zubereitung</h3>
+
+                <ol>
+                    ${recipe.steps
+                        .map(step => `
+                            <li>
+                                ${escapeHtml(step)}
+                            </li>
+                        `)
+                        .join("")}
+                </ol>
             </div>
         `;
-    }).join("");
+
+        modal.classList.remove("hidden");
+    } catch (error) {
+        console.error(error);
+        alert("Das Rezept konnte nicht geladen werden.");
+    }
 }
 
+searchInput.addEventListener("input", event => {
+    const searchTerm = event.target.value.toLowerCase().trim();
 
-function showRecipe(id) {
-    const recipe = recipes.find(function (item) {
-        return item.id === id;
+    const filteredRecipes = recipes.filter(recipe => {
+        return (
+            recipe.name.toLowerCase().includes(searchTerm) ||
+            (recipe.description || "").toLowerCase().includes(searchTerm) ||
+            (recipe.category || "").toLowerCase().includes(searchTerm)
+        );
     });
 
-    if (!recipe) {
-        return;
+    renderRecipes(filteredRecipes);
+});
+
+closeModal.addEventListener("click", () => {
+    modal.classList.add("hidden");
+});
+
+modal.addEventListener("click", event => {
+    if (event.target === modal) {
+        modal.classList.add("hidden");
     }
+});
 
-    const homeView = document.getElementById("homeView");
-    const addView = document.getElementById("addView");
-    const detailView = document.getElementById("detailView");
-
-    if (homeView) homeView.style.display = "none";
-    if (addView) addView.style.display = "none";
-    if (detailView) detailView.style.display = "block";
-
-    const detailContent = document.getElementById("recipeDetail");
-
-    if (!detailContent) {
-        return;
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+        modal.classList.add("hidden");
     }
+});
 
-    detailContent.innerHTML = `
-        <div class="detail-card">
-
-            <button class="back-button" onclick="showHome()">
-                ← Zurück
-            </button>
-
-            <h1>${escapeHTML(recipe.name)}</h1>
-
-            <p class="recipe-category">
-                ${escapeHTML(recipe.category)}
-            </p>
-
-            <p>
-                <strong>Von:</strong> ${escapeHTML(recipe.author)}
-            </p>
-
-            <h2>Zutaten</h2>
-
-            <ul>
-                ${recipe.ingredients.map(function (ingredient) {
-                    return `<li>${escapeHTML(ingredient)}</li>`;
-                }).join("")}
-            </ul>
-
-            <h2>Zubereitung</h2>
-
-            <ol>
-                ${recipe.steps.map(function (step) {
-                    return `<li>${escapeHTML(step)}</li>`;
-                }).join("")}
-            </ol>
-
-        </div>
-    `;
+function escapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = value;
+    return div.innerHTML;
 }
 
-
-function showHome() {
-    const homeView = document.getElementById("homeView");
-    const addView = document.getElementById("addView");
-    const detailView = document.getElementById("detailView");
-
-    if (homeView) homeView.style.display = "block";
-    if (addView) addView.style.display = "none";
-    if (detailView) detailView.style.display = "none";
-
-    renderRecipes();
-}
-
-
-function showAddRecipe() {
-    const homeView = document.getElementById("homeView");
-    const addView = document.getElementById("addView");
-    const detailView = document.getElementById("detailView");
-
-    if (homeView) homeView.style.display = "none";
-    if (addView) addView.style.display = "block";
-    if (detailView) detailView.style.display = "none";
-}
-
-
-function escapeHTML(text) {
-    return String(text)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+loadRecipes();
