@@ -3,44 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Kochbuch</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <header class="header">
-        <div class="header-inner">
+<header class="header">
+    <div class="header-inner">
+
+        <div>
             <h1>Kochbuch</h1>
-            <p>Meine Lieblingsrezepte</p>
+            <p>Meine Rezepte</p>
         </div>
-    </header>
 
-    <main class="container">
-        <section class="intro">
-            <h2>Rezepte</h2>
-            <input
-                type="search"
-                id="search"
-                placeholder="Rezepte durchsuchen ..."
-                aria-label="Rezepte durchsuchen"
-            >
-        </section>
+    </div>
+</header>
 
-        <section id="recipe-list" class="recipe-grid">
-            <p class="loading">Rezepte werden geladen ...</p>
-        </section>
-    </main>
 
-    <div id="recipe-modal" class="modal hidden">
-        <div class="modal-content">
-            <button id="close-modal" class="close-button" aria-label="Schließen">
-                ×
-            </button>
+<main class="container">
 
-            <div id="recipe-detail"></div>
-        </div>
+    <section class="toolbar">
+
+        <input
+            type="search"
+            id="search"
+            placeholder="Rezepte suchen..."
+            autocomplete="off"
+        >
+
+        <div id="tags" class="tags"></div>
+
+    </section>
+
+
+    <section id="recipe-list" class="recipe-grid">
+
+        <p class="loading">
+            Rezepte werden geladen...
+        </p>
+
+    </section>
+
+</main>
+
+
+<div id="recipe-modal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <button
+            id="close-modal"
+            class="close-button"
+            aria-label="Schließen"
+        >
+            ×
+        </button>
+
+        <div id="recipe-detail"></div>
+
     </div>
 
-    <script src="app.js"></script>
+</div>
+
+
+<script src="app.js"></script>
+
 </body>
 </html>
