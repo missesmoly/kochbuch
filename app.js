@@ -6,141 +6,188 @@ const modal = document.getElementById("recipe-modal");
 const modalContent = document.getElementById("recipe-detail");
 const closeModal = document.getElementById("close-modal");
 
-
 let recipes = [];
 let activeTag = null;
 
 
-/* =========================
-   REZEPTE LADEN
-========================= */
+/*
+ * Ermittelt den Pfad relativ zur GitHub-Pages-Seite.
+ */
+function getBasePath() {
+    return window.location.pathname
+        .replace(/\/[^/]*$/, "/");
+}
 
+
+/*
+ * URL für Dateien erzeugen.
+ */
+function fileUrl(path) {
+
+    return new URL(
+        path,
+        window.location.origin + getBasePath()
+    ).href;
+}
+
+
+/*
+ * Alle Rezepte laden
+ */
 async function loadRecipes() {
 
     try {
 
-        const response = await fetch("./rezepte/index.json");
+        const indexUrl = fileUrl("rezepte/index.json");
+
+        console.log("Lade Rezeptindex:", indexUrl);
+
+        const response = await fetch(indexUrl);
 
         if (!response.ok) {
             throw new Error(
-                `Rezeptindex konnte nicht geladen werden: ${response.status}`
+                `index.json konnte nicht geladen werden (${response.status})`
             );
         }
 
-        const recipeIndex = await response.json();
+        const index = await response.json();
 
-
-        /*
-         * Jedes Rezept aus dem Index laden
-         */
 
         const loadedRecipes = await Promise.all(
 
-            recipeIndex.map(async entry => {
+            index.map(async item => {
 
-                const folder = entry.folder;
+                try {
 
-                const response = await fetch(
-                    `./rezepte/${folder}/rezept.json`
-                );
+                    const recipeUrl = fileUrl(item.file);
 
-                if (!response.ok) {
+                    console.log(
+                        "Lade Rezept:",
+                        recipeUrl
+                    );
+
+
+                    const response =
+                        await fetch(recipeUrl);
+
+
+                    if (!response.ok) {
+
+                        console.error(
+                            "Rezept nicht gefunden:",
+                            recipeUrl
+                        );
+
+                        return null;
+                    }
+
+
+                    const recipe =
+                        await response.json();
+
+
+                    return recipe;
+
+                } catch (error) {
 
                     console.error(
-                        `Rezept konnte nicht geladen werden: ${folder}`
+                        "Fehler beim Rezept:",
+                        item.file,
+                        error
                     );
 
                     return null;
                 }
-
-                const recipe = await response.json();
-
-
-                return {
-
-                    ...recipe,
-
-                    folder: folder,
-
-                    image:
-                        recipe.image
-                            ? `./rezepte/${folder}/${recipe.image}`
-                            : null
-
-                };
 
             })
 
         );
 
 
-        recipes = loadedRecipes.filter(Boolean);
+        recipes =
+            loadedRecipes.filter(Boolean);
+
+
+        if (recipes.length === 0) {
+
+            throw new Error(
+                "Keine Rezepte gefunden."
+            );
+        }
 
 
         renderTags();
 
         renderRecipes(recipes);
 
+    }
 
-    } catch (error) {
+    catch (error) {
 
         console.error(error);
 
+
         recipeList.innerHTML = `
+
             <div class="empty">
 
-                <h3>Rezepte konnten nicht geladen werden.</h3>
+                <h3>
+                    Rezepte konnten nicht geladen werden.
+                </h3>
 
                 <p>
-                    Prüfe die Datei
-                    <strong>rezepte/index.json</strong>
-                    und die Ordnerstruktur.
+                    Fehler:
+                    ${escapeHtml(error.message)}
+                </p>
+
+                <p>
+                    Öffne die Entwicklerkonsole des Browsers
+                    für weitere Informationen.
                 </p>
 
             </div>
+
         `;
     }
 }
 
 
-/* =========================
-   REZEPTE ANZEIGEN
-========================= */
-
+/*
+ * Rezepte anzeigen
+ */
 function renderRecipes(recipeData) {
 
-    if (recipeData.length === 0) {
+    if (!recipeData.length) {
 
-        recipeList.innerHTML = `
-            <p class="empty">
+        recipeList.innerHTML =
+            `<p class="empty">
                 Keine Rezepte gefunden.
-            </p>
-        `;
+            </p>`;
 
         return;
     }
 
 
-    recipeList.innerHTML = recipeData
-        .map(recipe => {
+    recipeList.innerHTML =
+        recipeData.map(recipe => {
 
-            const tags = recipe.tags || [];
-
-
-            const tagHTML = tags
-                .map(tag => `
-                    <span class="recipe-card-tag">
-                        ${escapeHtml(tag)}
-                    </span>
-                `)
-                .join("");
+            const tags =
+                (recipe.tags || [])
+                    .map(tag => `
+                        <span class="recipe-card-tag">
+                            ${escapeHtml(tag)}
+                        </span>
+                    `)
+                    .join("");
 
 
             return `
 
                 <article
                     class="recipe-card"
-                    data-folder="${escapeHtml(recipe.folder)}"
+                    data-recipe="${escapeHtml(
+                        recipe.name
+                    )}"
                 >
 
                     ${
@@ -148,7 +195,7 @@ function renderRecipes(recipeData) {
                             ? `
                                 <img
                                     class="recipe-image"
-                                    src="${escapeHtml(recipe.image)}"
+                                    src="${fileUrl(recipe.image)}"
                                     alt="${escapeHtml(recipe.name)}"
                                     loading="lazy"
                                 >
@@ -163,384 +210,382 @@ function renderRecipes(recipeData) {
                             ${escapeHtml(recipe.name)}
                         </h2>
 
-
                         <p>
-                            ${escapeHtml(recipe.description || "")}
+                            ${escapeHtml(
+                                recipe.description || ""
+                            )}
                         </p>
 
-
                         <div class="recipe-card-tags">
-                            ${tagHTML}
+                            ${tags}
                         </div>
 
                     </div>
 
                 </article>
-
             `;
 
-        })
-        .join("");
+        }).join("");
 
 
     document
         .querySelectorAll(".recipe-card")
         .forEach(card => {
 
-            card.addEventListener("click", () => {
+            card.addEventListener(
+                "click",
+                () => {
 
-                openRecipe(card.dataset.folder);
+                    const recipe =
+                        recipes.find(
+                            item =>
+                                item.name ===
+                                card.dataset.recipe
+                        );
 
-            });
+                    if (recipe) {
+                        openRecipe(recipe);
+                    }
+
+                }
+            );
 
         });
 }
 
 
-/* =========================
-   TAGS
-========================= */
-
+/*
+ * Tags erzeugen
+ */
 function renderTags() {
 
-    const allTags = recipes.flatMap(
-        recipe => recipe.tags || []
-    );
+    const allTags =
+        recipes.flatMap(
+            recipe => recipe.tags || []
+        );
 
 
-    const uniqueTags = [
-        ...new Set(allTags)
-    ].sort();
+    const uniqueTags =
+        [...new Set(allTags)].sort();
 
 
     tagsContainer.innerHTML = "";
 
 
-    if (uniqueTags.length === 0) {
-        return;
-    }
+    const allButton =
+        document.createElement("button");
 
 
-    const allButton = document.createElement("button");
+    allButton.className =
+        "tag-button active";
 
-    allButton.className = "tag-button active";
 
     allButton.textContent = "Alle";
 
-    allButton.addEventListener("click", () => {
+
+    allButton.onclick = () => {
 
         activeTag = null;
 
         updateTagButtons();
 
         filterRecipes();
+    };
 
-    });
 
-    tagsContainer.appendChild(allButton);
+    tagsContainer.appendChild(
+        allButton
+    );
 
 
     uniqueTags.forEach(tag => {
 
-        const button = document.createElement("button");
-
-        button.className = "tag-button";
-
-        button.textContent = tag;
-
-        button.dataset.tag = tag;
+        const button =
+            document.createElement("button");
 
 
-        button.addEventListener("click", () => {
+        button.className =
+            "tag-button";
+
+
+        button.textContent =
+            tag;
+
+
+        button.dataset.tag =
+            tag;
+
+
+        button.onclick = () => {
 
             activeTag = tag;
 
             updateTagButtons();
 
             filterRecipes();
+        };
 
-        });
 
-
-        tagsContainer.appendChild(button);
+        tagsContainer.appendChild(
+            button
+        );
 
     });
 }
 
 
+/*
+ * Aktiven Tag markieren
+ */
 function updateTagButtons() {
 
     document
         .querySelectorAll(".tag-button")
         .forEach(button => {
 
+            button.classList.remove(
+                "active"
+            );
+
+
             if (
                 activeTag === null &&
                 button.textContent === "Alle"
             ) {
 
-                button.classList.add("active");
+                button.classList.add(
+                    "active"
+                );
 
-            } else if (
-                button.dataset.tag === activeTag
+            }
+
+
+            if (
+                button.dataset.tag ===
+                activeTag
             ) {
 
-                button.classList.add("active");
-
-            } else {
-
-                button.classList.remove("active");
-
+                button.classList.add(
+                    "active"
+                );
             }
 
         });
 }
 
 
-/* =========================
-   SUCHE + FILTER
-========================= */
-
-function filterRecipes() {
-
-    const searchTerm =
-        searchInput.value
-            .toLowerCase()
-            .trim();
-
-
-    const filtered = recipes.filter(recipe => {
-
-        const searchableText = `
-
-            ${recipe.name || ""}
-
-            ${recipe.description || ""}
-
-            ${(recipe.tags || []).join(" ")}
-
-        `.toLowerCase();
-
-
-        const matchesSearch =
-            searchableText.includes(searchTerm);
-
-
-        const matchesTag =
-            activeTag === null ||
-            (recipe.tags || []).includes(activeTag);
-
-
-        return matchesSearch && matchesTag;
-
-    });
-
-
-    renderRecipes(filtered);
-}
-
-
+/*
+ * Suche
+ */
 searchInput.addEventListener(
     "input",
     filterRecipes
 );
 
 
-/* =========================
-   EINZELNES REZEPT
-========================= */
+function filterRecipes() {
 
-async function openRecipe(folder) {
-
-    try {
-
-        const response = await fetch(
-            `./rezepte/${folder}/rezept.json`
-        );
+    const search =
+        searchInput.value
+            .toLowerCase()
+            .trim();
 
 
-        if (!response.ok) {
-            throw new Error("Rezept konnte nicht geladen werden.");
-        }
+    const filtered =
+        recipes.filter(recipe => {
+
+            const text = `
+
+                ${recipe.name}
+
+                ${recipe.description || ""}
+
+                ${(recipe.tags || []).join(" ")}
+
+            `.toLowerCase();
 
 
-        const recipe = await response.json();
+            const matchesSearch =
+                text.includes(search);
 
 
-        const image =
+            const matchesTag =
+                activeTag === null ||
+                (recipe.tags || [])
+                    .includes(activeTag);
+
+
+            return (
+                matchesSearch &&
+                matchesTag
+            );
+
+        });
+
+
+    renderRecipes(filtered);
+}
+
+
+/*
+ * Rezept öffnen
+ */
+function openRecipe(recipe) {
+
+    const tags =
+        (recipe.tags || [])
+            .map(tag => `
+                <span class="detail-tag">
+                    ${escapeHtml(tag)}
+                </span>
+            `)
+            .join("");
+
+
+    const ingredients =
+        (recipe.ingredients || [])
+            .map(item => `
+                <li>
+                    ${escapeHtml(item)}
+                </li>
+            `)
+            .join("");
+
+
+    const steps =
+        (recipe.steps || [])
+            .map(step => `
+                <li>
+                    ${escapeHtml(step)}
+                </li>
+            `)
+            .join("");
+
+
+    modalContent.innerHTML = `
+
+        ${
             recipe.image
                 ? `
                     <img
                         class="recipe-detail-image"
-                        src="./rezepte/${folder}/${recipe.image}"
+                        src="${fileUrl(recipe.image)}"
                         alt="${escapeHtml(recipe.name)}"
                     >
                   `
-                : "";
+                : ""
+        }
 
 
-        const tags =
-            (recipe.tags || [])
-                .map(tag => `
-                    <span class="detail-tag">
-                        ${escapeHtml(tag)}
-                    </span>
-                `)
-                .join("");
+        <div class="recipe-detail-content">
 
-
-        const ingredients =
-            (recipe.ingredients || [])
-                .map(ingredient => `
-                    <li>
-                        ${escapeHtml(ingredient)}
-                    </li>
-                `)
-                .join("");
-
-
-        const steps =
-            (recipe.steps || [])
-                .map(step => `
-                    <li>
-                        ${escapeHtml(step)}
-                    </li>
-                `)
-                .join("");
-
-
-        modalContent.innerHTML = `
-
-            ${image}
-
-
-            <div class="recipe-detail-content">
-
-                <div class="recipe-detail">
-
-                    <h2>
-                        ${escapeHtml(recipe.name)}
-                    </h2>
-
-
-                    <p class="recipe-description">
-                        ${escapeHtml(recipe.description || "")}
-                    </p>
-
-
-                    <div class="detail-tags">
-                        ${tags}
-                    </div>
-
-
-                    <h3>
-                        Zutaten
-                    </h3>
-
-                    <ul>
-                        ${ingredients}
-                    </ul>
-
-
-                    <h3>
-                        Zubereitung
-                    </h3>
-
-                    <ol>
-                        ${steps}
-                    </ol>
-
-                </div>
-
-            </div>
-
-        `;
-
-
-        modal.classList.remove("hidden");
-
-        document.body.style.overflow = "hidden";
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        modalContent.innerHTML = `
-
-            <div class="recipe-detail-content">
+            <div class="recipe-detail">
 
                 <h2>
-                    Rezept konnte nicht geladen werden
+                    ${escapeHtml(recipe.name)}
                 </h2>
 
-                <p>
-                    Der Ordner
-                    <strong>${escapeHtml(folder)}</strong>
-                    konnte nicht geladen werden.
+
+                <p class="recipe-description">
+                    ${escapeHtml(
+                        recipe.description || ""
+                    )}
                 </p>
+
+
+                <div class="detail-tags">
+                    ${tags}
+                </div>
+
+
+                <h3>
+                    Zutaten
+                </h3>
+
+                <ul>
+                    ${ingredients}
+                </ul>
+
+
+                <h3>
+                    Zubereitung
+                </h3>
+
+                <ol>
+                    ${steps}
+                </ol>
 
             </div>
 
-        `;
+        </div>
 
-        modal.classList.remove("hidden");
+    `;
+
+
+    modal.classList.remove(
+        "hidden"
+    );
+
+    document.body.style.overflow =
+        "hidden";
+}
+
+
+/*
+ * Modal schließen
+ */
+function closeRecipe() {
+
+    modal.classList.add(
+        "hidden"
+    );
+
+    document.body.style.overflow =
+        "";
+}
+
+
+closeModal.onclick =
+    closeRecipe;
+
+
+modal.onclick = event => {
+
+    if (event.target === modal) {
+        closeRecipe();
     }
-}
+
+};
 
 
-/* =========================
-   MODAL SCHLIESSEN
-========================= */
+document.addEventListener(
+    "keydown",
+    event => {
 
-function closeRecipeModal() {
+        if (event.key === "Escape") {
+            closeRecipe();
+        }
 
-    modal.classList.add("hidden");
-
-    document.body.style.overflow = "";
-}
-
-
-closeModal.addEventListener(
-    "click",
-    closeRecipeModal
+    }
 );
 
 
-modal.addEventListener("click", event => {
-
-    if (event.target === modal) {
-        closeRecipeModal();
-    }
-
-});
-
-
-document.addEventListener("keydown", event => {
-
-    if (event.key === "Escape") {
-        closeRecipeModal();
-    }
-
-});
-
-
-/* =========================
-   HTML SICHER DARSTELLEN
-========================= */
-
+/*
+ * HTML sicher ausgeben
+ */
 function escapeHtml(value) {
 
-    const div = document.createElement("div");
+    const element =
+        document.createElement("div");
 
-    div.textContent = String(value ?? "");
+    element.textContent =
+        String(value ?? "");
 
-    return div.innerHTML;
+    return element.innerHTML;
 }
 
 
-/* =========================
-   START
-========================= */
-
+/*
+ * START
+ */
 loadRecipes();
