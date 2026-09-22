@@ -1,1 +1,25 @@
-
+{
+  "id": "spaghetti-bolognese",
+  "name": "Spaghetti Bolognese",
+  "category": "Hauptgericht",
+  "author": "Marlen",
+  "ingredients": [
+    "500 g Spaghetti",
+    "500 g Hackfleisch",
+    "1 Zwiebel",
+    "2 Knoblauchzehen",
+    "400 g gehackte Tomaten",
+    "2 EL Tomatenmark",
+    "Salz und Pfeffer",
+    "Italienische Kräuter"
+  ],
+  "steps": [
+    "Zwiebel und Knoblauch klein schneiden.",
+    "Hackfleisch in einer Pfanne anbraten.",
+    "Zwiebel und Knoblauch dazugeben.",
+    "Tomaten und Tomatenmark hinzufügen.",
+    "Mit Salz, Pfeffer und Kräutern würzen.",
+    "Etwa 20 Minuten köcheln lassen.",
+    "Spaghetti nach Packungsanleitung kochen und mit der Sauce servieren."
+  ]
+}
