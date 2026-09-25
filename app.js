@@ -1,30 +1,20 @@
 let config = {};
 let recipes = [];
-
 let selectedTags = new Set();
 let weeklyPlan = [];
-
 let currentRecipe = null;
 let currentRecipeServings = 1;
 
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
-
-/* =========================================
-   START
-========================================= */
-
-
 document.addEventListener("DOMContentLoaded", init);
 
-
 async function init() {
-
     try {
+        showStatus("Kochbuch wird geladen …", "loading");
 
         await loadConfig();
         await loadRecipes();
-
         loadWeeklyPlan();
 
         setupNavigation();
@@ -33,249 +23,303 @@ async function init() {
         setupModal();
         setupActions();
 
-        renderTagButtons();
+        renderTags();
         renderRecipes();
         renderWeeklyPlan();
         renderShoppingList();
-        updateWeeklyCount();
 
+        hideStatus();
     } catch (error) {
-
         console.error(error);
 
-        document.getElementById("recipeGrid").innerHTML = `
-            <div class="empty-state visible">
-                <h2>Rezepte konnten nicht geladen werden</h2>
-                <p>
-                    Bitte überprüfe die JSON-Dateien und die Ordnerstruktur.
-                </p>
-            </div>
-        `;
+        showStatus(
+            `
+            <strong>Die Rezepte konnten nicht geladen werden.</strong>
+            <br><br>
+            ${escapeHtml(error.message)}
+            <br><br>
+            Bitte prüfe, ob die genannten JSON-Dateien in GitHub vorhanden
+            und direkt erreichbar sind.
+            `,
+            "error"
+        );
     }
 }
 
 
-/* =========================================
-   DATEN LADEN
-========================================= */
+/* =========================================================
+   LADEN DER DATEN
+   ========================================================= */
 
 async function loadConfig() {
-
-    const response = await fetch("app.json");
+    const response = await fetch("app.json", {
+        cache: "no-store"
+    });
 
     if (!response.ok) {
-        throw new Error("app.json konnte nicht geladen werden.");
+        throw new Error(
+            `app.json konnte nicht geladen werden (HTTP ${response.status}).`
+        );
     }
 
-    config = await response.json();
+    try {
+        config = await response.json();
+    } catch (error) {
+        throw new Error("app.json enthält kein gültiges JSON.");
+    }
 }
 
 
 async function loadRecipes() {
-
-    const response = await fetch(config.recipePath);
-
-    if (!response.ok) {
-        throw new Error("rezepte/index.json konnte nicht geladen werden.");
+    if (!config.recipePath) {
+        throw new Error(
+            "In app.json fehlt der Eintrag „recipePath“."
+        );
     }
 
-    const catalog = await response.json();
+    const catalogUrl = config.recipePath;
 
-    recipes = await Promise.all(
-        catalog.recipes.map(async recipe => {
+    const response = await fetch(catalogUrl, {
+        cache: "no-store"
+    });
 
-            const recipeResponse = await fetch(
-                `rezepte/${recipe.path.replace(/^rezepte\//, "")}`
+    if (!response.ok) {
+        throw new Error(
+            `Die Rezeptübersicht konnte nicht geladen werden: ${catalogUrl} (HTTP ${response.status}).`
+        );
+    }
+
+    let catalog;
+
+    try {
+        catalog = await response.json();
+    } catch (error) {
+        throw new Error(
+            `Die Datei ${catalogUrl} enthält kein gültiges JSON.`
+        );
+    }
+
+    if (!catalog.recipes || !Array.isArray(catalog.recipes)) {
+        throw new Error(
+            `In ${catalogUrl} wurde kein gültiges „recipes“-Array gefunden.`
+        );
+    }
+
+    const loadedRecipes = [];
+
+    for (const recipeEntry of catalog.recipes) {
+        if (!recipeEntry.path) {
+            throw new Error(
+                `Beim Rezept „${recipeEntry.title || recipeEntry.id || "unbekannt"}“ fehlt der Pfad zur index.json.`
             );
+        }
 
-            if (!recipeResponse.ok) {
-                throw new Error(
-                    `Rezept konnte nicht geladen werden: ${recipe.id}`
-                );
-            }
+        /*
+         * Die Pfade in rezepte/index.json werden relativ zum
+         * Ordner "rezepte" angegeben:
+         *
+         * "path": "pasta-pesto/index.json"
+         *
+         * Daraus wird:
+         *
+         * rezepte/pasta-pesto/index.json
+         */
+        const recipeUrl = `rezepte/${recipeEntry.path}`;
 
-            const fullRecipe = await recipeResponse.json();
+        const recipeResponse = await fetch(recipeUrl, {
+            cache: "no-store"
+        });
 
-            return {
-                ...recipe,
-                ...fullRecipe
-            };
-        })
-    );
+        if (!recipeResponse.ok) {
+            throw new Error(
+                `Das Rezept „${recipeEntry.title || recipeEntry.id || "unbekannt"}“ konnte nicht geladen werden: ${recipeUrl} (HTTP ${recipeResponse.status}).`
+            );
+        }
+
+        let fullRecipe;
+
+        try {
+            fullRecipe = await recipeResponse.json();
+        } catch (error) {
+            throw new Error(
+                `Die Rezeptdatei ${recipeUrl} enthält kein gültiges JSON.`
+            );
+        }
+
+        loadedRecipes.push({
+            ...recipeEntry,
+            ...fullRecipe
+        });
+    }
+
+    recipes = loadedRecipes;
+
+    if (recipes.length === 0) {
+        throw new Error(
+            "Die Rezeptübersicht wurde geladen, enthält aber keine Rezepte."
+        );
+    }
 }
 
 
-/* =========================================
+/* =========================================================
    LOCAL STORAGE
-========================================= */
+   ========================================================= */
 
 function loadWeeklyPlan() {
-
     try {
+        const saved = localStorage.getItem(WEEKLY_STORAGE_KEY);
 
-        const stored = localStorage.getItem(WEEKLY_STORAGE_KEY);
+        if (!saved) {
+            weeklyPlan = [];
+            return;
+        }
 
-        weeklyPlan = stored
-            ? JSON.parse(stored)
-            : [];
+        const parsed = JSON.parse(saved);
 
+        if (Array.isArray(parsed)) {
+            weeklyPlan = parsed;
+        } else {
+            weeklyPlan = [];
+        }
     } catch (error) {
-
-        console.error(error);
-
+        console.warn("Wochenplan konnte nicht geladen werden.", error);
         weeklyPlan = [];
     }
 }
 
 
 function saveWeeklyPlan() {
-
     localStorage.setItem(
         WEEKLY_STORAGE_KEY,
         JSON.stringify(weeklyPlan)
     );
-
 }
 
 
-/* =========================================
+/* =========================================================
    NAVIGATION
-========================================= */
+   ========================================================= */
 
 function setupNavigation() {
+    const recipeButton = document.querySelector(
+        '[data-target="rezepte"]'
+    );
 
-    document
-        .getElementById("navRecipes")
-        .addEventListener("click", () => showView("recipes"));
+    const planButton = document.querySelector(
+        '[data-target="wochenplan"]'
+    );
 
-    document
-        .getElementById("navRecipesButton")
-        .addEventListener("click", () => showView("recipes"));
+    const shoppingButton = document.querySelector(
+        '[data-target="einkaufsliste"]'
+    );
 
-    document
-        .getElementById("navWeekly")
-        .addEventListener("click", () => showView("weekly"));
+    if (recipeButton) {
+        recipeButton.addEventListener("click", () => {
+            scrollToSection("rezepte");
+        });
+    }
 
-    document
-        .getElementById("navShopping")
-        .addEventListener("click", () => showView("shopping"));
+    if (planButton) {
+        planButton.addEventListener("click", () => {
+            scrollToSection("wochenplan");
+        });
+    }
+
+    if (shoppingButton) {
+        shoppingButton.addEventListener("click", () => {
+            scrollToSection("einkaufsliste");
+        });
+    }
 }
 
 
-function showView(viewName) {
+function scrollToSection(id) {
+    const section = document.getElementById(id);
 
-    document.querySelectorAll(".view").forEach(view => {
-        view.classList.remove("active");
-    });
-
-    document
-        .getElementById(`${viewName}View`)
-        .classList.add("active");
-
-
-    document.querySelectorAll(".nav-button").forEach(button => {
-        button.classList.remove("active");
-    });
-
-
-    if (viewName === "recipes") {
-        document
-            .getElementById("navRecipesButton")
-            .classList.add("active");
+    if (section) {
+        section.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
     }
-
-    if (viewName === "weekly") {
-        document
-            .getElementById("navWeekly")
-            .classList.add("active");
-    }
-
-    if (viewName === "shopping") {
-        document
-            .getElementById("navShopping")
-            .classList.add("active");
-
-        renderShoppingList();
-    }
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
 }
 
 
-/* =========================================
+/* =========================================================
    SUCHE
-========================================= */
+   ========================================================= */
 
 function setupSearch() {
+    const searchInput = document.getElementById("search");
 
-    document
-        .getElementById("searchInput")
-        .addEventListener("input", renderRecipes);
-}
-
-
-function recipeMatchesSearch(recipe, searchTerm) {
-
-    if (!searchTerm) {
-        return true;
+    if (!searchInput) {
+        return;
     }
 
-    const searchableText = [
-
-        recipe.title,
-        recipe.description,
-        ...(recipe.tags || []),
-
-        ...(recipe.ingredients || []).map(
-            ingredient => ingredient.name
-        )
-
-    ]
-        .join(" ")
-        .toLowerCase();
-
-
-    return searchableText.includes(searchTerm);
+    searchInput.addEventListener("input", () => {
+        renderRecipes();
+    });
 }
 
 
-/* =========================================
-   MEHRFACH-TAG-FILTER
-========================================= */
+/* =========================================================
+   FILTER
+   ========================================================= */
 
-function renderTagButtons() {
+function setupFilters() {
+    const resetButton = document.getElementById("reset-filters");
 
-    const container = document.getElementById("tagList");
+    if (!resetButton) {
+        return;
+    }
 
-    container.innerHTML = "";
+    resetButton.addEventListener("click", () => {
+        selectedTags.clear();
+
+        const searchInput = document.getElementById("search");
+
+        if (searchInput) {
+            searchInput.value = "";
+        }
+
+        renderTags();
+        renderRecipes();
+    });
+}
+
+
+function renderTags() {
+    const container = document.getElementById("tag-filters");
+
+    if (!container) {
+        return;
+    }
 
     const tags = config.tags || [];
 
-    tags.forEach(tag => {
+    container.innerHTML = "";
 
+    tags.forEach(tag => {
         const button = document.createElement("button");
 
         button.type = "button";
         button.className = "tag-button";
 
+        if (selectedTags.has(tag)) {
+            button.classList.add("active");
+        }
+
         button.textContent = tag;
 
         button.addEventListener("click", () => {
-
             if (selectedTags.has(tag)) {
                 selectedTags.delete(tag);
             } else {
                 selectedTags.add(tag);
             }
 
-            button.classList.toggle(
-                "active",
-                selectedTags.has(tag)
-            );
-
+            renderTags();
             renderRecipes();
         });
 
@@ -284,596 +328,454 @@ function renderTagButtons() {
 }
 
 
-function setupFilters() {
-
-    document
-        .getElementById("clearFilters")
-        .addEventListener("click", () => {
-
-            selectedTags.clear();
-
-            document
-                .querySelectorAll(".tag-button")
-                .forEach(button => {
-                    button.classList.remove("active");
-                });
-
-            renderRecipes();
-        });
-}
-
-
-function recipeMatchesTags(recipe) {
-
-    if (selectedTags.size === 0) {
-        return true;
-    }
-
-    const recipeTags = recipe.tags || [];
-
-    /*
-       WICHTIG:
-
-       Alle ausgewählten Tags müssen vorhanden sein.
-
-       Beispiel:
-       Vegan + MealPrep
-
-       zeigt nur Rezepte,
-       die BEIDE Tags besitzen.
-    */
-
-    return [...selectedTags].every(tag =>
-        recipeTags.includes(tag)
-    );
-}
-
-
-/* =========================================
+/* =========================================================
    REZEPTE RENDERN
-========================================= */
+   ========================================================= */
 
 function renderRecipes() {
+    const container = document.getElementById("recipe-grid");
 
-    const grid = document.getElementById("recipeGrid");
+    if (!container) {
+        return;
+    }
 
-    const searchTerm = document
-        .getElementById("searchInput")
-        .value
-        .trim()
-        .toLowerCase();
+    const searchInput = document.getElementById("search");
 
+    const searchTerm = searchInput
+        ? searchInput.value.trim().toLowerCase()
+        : "";
 
     const filteredRecipes = recipes.filter(recipe => {
+        const recipeTags = Array.isArray(recipe.tags)
+            ? recipe.tags
+            : [];
 
-        return (
-            recipeMatchesSearch(recipe, searchTerm) &&
-            recipeMatchesTags(recipe)
+        /*
+         * Alle ausgewählten Tags müssen vorhanden sein.
+         */
+        const matchesTags = [...selectedTags].every(tag =>
+            recipeTags.includes(tag)
         );
 
+        if (!matchesTags) {
+            return false;
+        }
+
+        if (!searchTerm) {
+            return true;
+        }
+
+        const ingredientNames = Array.isArray(recipe.ingredients)
+            ? recipe.ingredients.map(ingredient => ingredient.name || "")
+            : [];
+
+        const searchableText = [
+            recipe.title || "",
+            recipe.description || "",
+            ...recipeTags,
+            ...ingredientNames
+        ]
+            .join(" ")
+            .toLowerCase();
+
+        return searchableText.includes(searchTerm);
     });
 
-
-    document.getElementById("resultCount").textContent =
-        `${filteredRecipes.length} ${
-            filteredRecipes.length === 1
-                ? "Rezept"
-                : "Rezepte"
-        }`;
-
-
-    grid.innerHTML = "";
-
+    container.innerHTML = "";
 
     if (filteredRecipes.length === 0) {
-
-        grid.innerHTML = `
-            <div class="empty-state visible">
-                <span class="empty-symbol">⌕</span>
-                <h2>Keine Rezepte gefunden</h2>
-                <p>
-                    Versuche einen anderen Suchbegriff
-                    oder ändere deine Filter.
-                </p>
+        container.innerHTML = `
+            <div class="empty-state">
+                Keine passenden Rezepte gefunden.
             </div>
         `;
 
         return;
     }
-
 
     filteredRecipes.forEach(recipe => {
-
-        const card = document.createElement("article");
-
-        card.className = "recipe-card";
-
-
-        const isInPlan = weeklyPlan.some(
-            item => item.recipeId === recipe.id
-        );
-
-
-        card.innerHTML = `
-
-            <button
-                class="add-recipe-button ${
-                    isInPlan ? "added" : ""
-                }"
-                data-add="${escapeHtml(recipe.id)}"
-                aria-label="${
-                    isInPlan
-                        ? "Bereits im Wochenplan"
-                        : "Zum Wochenplan hinzufügen"
-                }"
-                title="${
-                    isInPlan
-                        ? "Bereits im Wochenplan"
-                        : "Zum Wochenplan hinzufügen"
-                }"
-            >
-                ${isInPlan ? "✓" : "+"}
-            </button>
-
-
-            <button
-                class="recipe-image-button"
-                data-open="${escapeHtml(recipe.id)}"
-            >
-                <img
-                    class="recipe-image"
-                    src="${escapeHtml(recipe.image)}"
-                    alt="${escapeHtml(recipe.title)}"
-                    loading="lazy"
-                    onerror="this.style.display='none'"
-                >
-            </button>
-
-
-            <div class="recipe-card-content">
-
-                <h2>
-                    ${escapeHtml(recipe.title)}
-                </h2>
-
-                <p class="recipe-card-description">
-                    ${escapeHtml(recipe.description || "")}
-                </p>
-
-                <div class="recipe-tags">
-
-                    ${(recipe.tags || [])
-                        .map(tag => `
-                            <span class="recipe-tag">
-                                ${escapeHtml(tag)}
-                            </span>
-                        `)
-                        .join("")
-                    }
-
-                </div>
-
-            </div>
-        `;
-
-
-        grid.appendChild(card);
+        container.appendChild(createRecipeCard(recipe));
     });
-
-
-    /*
-       Öffnen des Rezepts
-    */
-
-    grid.querySelectorAll("[data-open]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                const recipe = getRecipe(
-                    button.dataset.open
-                );
-
-                if (recipe) {
-                    openRecipe(recipe);
-                }
-
-            });
-
-        });
-
-
-    /*
-       + Button
-    */
-
-    grid.querySelectorAll("[data-add]")
-        .forEach(button => {
-
-            button.addEventListener("click", event => {
-
-                event.stopPropagation();
-
-                addToWeeklyPlan(
-                    button.dataset.add
-                );
-
-            });
-
-        });
 }
 
 
-/* =========================================
-   REZEPT ÖFFNEN
-========================================= */
+function createRecipeCard(recipe) {
+    const card = document.createElement("article");
 
-function openRecipe(recipe) {
+    card.className = "recipe-card";
 
-    currentRecipe = recipe;
+    const inPlan = weeklyPlan.some(
+        item => item.recipeId === recipe.id
+    );
 
-    currentRecipeServings =
-        recipe.servings || 1;
+    const imagePath = getRecipeImagePath(recipe);
 
-
-    renderRecipeModal();
-
-
-    document
-        .getElementById("recipeModal")
-        .classList.add("open");
-
-    document.body.style.overflow = "hidden";
-}
-
-
-function renderRecipeModal() {
-
-    if (!currentRecipe) {
-        return;
-    }
-
-
-    const recipe = currentRecipe;
-
-    const scale =
-        currentRecipeServings /
-        (recipe.servings || 1);
-
-
-    const ingredientsHtml =
-        (recipe.ingredients || [])
-            .map(ingredient => {
-
-                const amount =
-                    ingredient.amount * scale;
-
-
-                return `
-                    <li>
-
-                        <span class="ingredient-name">
-                            ${escapeHtml(ingredient.name)}
-                        </span>
-
-                        <span class="ingredient-value">
-                            ${formatAmount(amount)}
-                            ${escapeHtml(ingredient.unit || "")}
-                        </span>
-
-                    </li>
-                `;
-
-            })
-            .join("");
-
-
-    const stepsHtml =
-        (recipe.steps || [])
-            .map(step => `
-                <li>
-                    ${escapeHtml(step)}
-                </li>
-            `)
-            .join("");
-
-
-    document.getElementById("modalContent").innerHTML = `
-
-        <img
-            src="${escapeHtml(recipe.image)}"
-            alt="${escapeHtml(recipe.title)}"
-            class="modal-recipe-image"
-            onerror="this.style.display='none'"
-        >
-
-
-        <div class="modal-recipe-content">
-
-            <div class="recipe-tags">
-
-                ${(recipe.tags || [])
-                    .map(tag => `
-                        <span class="recipe-tag">
-                            ${escapeHtml(tag)}
-                        </span>
-                    `)
-                    .join("")
-                }
-
-            </div>
-
-
-            <h1>
-                ${escapeHtml(recipe.title)}
-            </h1>
-
-
-            <p class="modal-description">
-                ${escapeHtml(recipe.description || "")}
-            </p>
-
-
-            <div class="recipe-serving-box">
-
-                <span class="recipe-serving-label">
-                    Portionen
-                </span>
-
-
-                <div class="recipe-serving-control">
-
-                    <button
-                        type="button"
-                        id="recipeServingMinus"
-                        aria-label="Portionen verringern"
-                    >
-                        −
-                    </button>
-
-
-                    <span
-                        class="recipe-serving-number"
-                        id="recipeServingNumber"
-                    >
-                        ${currentRecipeServings}
-                    </span>
-
-
-                    <button
-                        type="button"
-                        id="recipeServingPlus"
-                        aria-label="Portionen erhöhen"
-                    >
-                        +
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <div class="recipe-section">
-
-                <h2>Zutaten</h2>
-
-                <ul class="ingredient-list">
-                    ${ingredientsHtml}
-                </ul>
-
-            </div>
-
-
-            <div class="recipe-section">
-
-                <h2>Zubereitung</h2>
-
-                <ol class="recipe-steps">
-                    ${stepsHtml}
-                </ol>
-
-            </div>
-
+    card.innerHTML = `
+        <div class="recipe-image-wrapper">
+            <img
+                class="recipe-image"
+                src="${escapeHtml(imagePath)}"
+                alt="${escapeHtml(recipe.title || "Rezept")}"
+                loading="lazy"
+            >
 
             <button
+                class="add-recipe-button ${inPlan ? "added" : ""}"
                 type="button"
-                class="modal-plan-button"
-                id="modalAddToPlan"
+                aria-label="${inPlan ? "Bereits im Wochenplan" : "Zum Wochenplan hinzufügen"}"
+                title="${inPlan ? "Bereits im Wochenplan" : "Zum Wochenplan hinzufügen"}"
             >
-                Zum Wochenplan hinzufügen
+                ${inPlan ? "✓" : "+"}
             </button>
+        </div>
 
+        <div class="recipe-card-content">
+            <h3>${escapeHtml(recipe.title || "")}</h3>
+
+            ${
+                recipe.description
+                    ? `<p>${escapeHtml(recipe.description)}</p>`
+                    : ""
+            }
+
+            ${
+                Array.isArray(recipe.tags)
+                    ? `
+                        <div class="recipe-tags">
+                            ${recipe.tags
+                                .map(
+                                    tag =>
+                                        `<span class="recipe-tag">${escapeHtml(tag)}</span>`
+                                )
+                                .join("")}
+                        </div>
+                    `
+                    : ""
+            }
         </div>
     `;
 
+    const image = card.querySelector(".recipe-image");
+    const addButton = card.querySelector(".add-recipe-button");
 
-    document
-        .getElementById("recipeServingMinus")
-        .addEventListener("click", () => {
-
-            if (currentRecipeServings > 1) {
-
-                currentRecipeServings--;
-
-                renderRecipeModal();
-            }
-
+    if (image) {
+        image.addEventListener("click", () => {
+            openRecipe(recipe.id);
         });
+    }
 
+    const title = card.querySelector("h3");
 
-    document
-        .getElementById("recipeServingPlus")
-        .addEventListener("click", () => {
-
-            currentRecipeServings++;
-
-            renderRecipeModal();
+    if (title) {
+        title.addEventListener("click", () => {
+            openRecipe(recipe.id);
         });
+    }
 
+    if (addButton) {
+        addButton.addEventListener("click", event => {
+            event.stopPropagation();
 
-    document
-        .getElementById("modalAddToPlan")
-        .addEventListener("click", () => {
-
-            addToWeeklyPlan(
-                recipe.id,
-                currentRecipeServings
-            );
-
+            addToWeeklyPlan(recipe.id);
         });
+    }
+
+    return card;
 }
 
 
-/* =========================================
-   MODAL
-========================================= */
+function getRecipeImagePath(recipe) {
+    if (!recipe.image) {
+        return "";
+    }
+
+    /*
+     * Wenn im Rezept "bild.jpg" steht, liegt das Bild
+     * im jeweiligen Rezeptordner.
+     *
+     * Der Ordner wird aus recipe.path ermittelt.
+     */
+    if (recipe.path) {
+        const normalizedPath = recipe.path.replace(/\\/g, "/");
+        const folder = normalizedPath.substring(
+            0,
+            normalizedPath.lastIndexOf("/")
+        );
+
+        if (folder) {
+            return `rezepte/${folder}/${recipe.image}`;
+        }
+    }
+
+    /*
+     * Fallback für Katalogeinträge wie:
+     * "image": "pasta-pesto/bild.jpg"
+     */
+    return `rezepte/${recipe.image}`;
+}
+
+
+/* =========================================================
+   REZEPT-MODAL
+   ========================================================= */
 
 function setupModal() {
+    const modal = document.getElementById("recipe-modal");
+    const closeButton = document.getElementById("modal-close");
 
-    document
-        .getElementById("modalClose")
-        .addEventListener("click", closeRecipe);
+    if (closeButton) {
+        closeButton.addEventListener("click", closeRecipeModal);
+    }
 
-
-    document
-        .getElementById("recipeModal")
-        .addEventListener("click", event => {
-
-            if (
-                event.target.id === "recipeModal"
-            ) {
-                closeRecipe();
+    if (modal) {
+        modal.addEventListener("click", event => {
+            if (event.target === modal) {
+                closeRecipeModal();
             }
-
         });
+    }
 
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Escape" &&
-                document
-                    .getElementById("recipeModal")
-                    .classList.contains("open")
-            ) {
-                closeRecipe();
-            }
-
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeRecipeModal();
         }
+    });
+}
+
+
+function openRecipe(recipeId) {
+    const recipe = recipes.find(
+        item => item.id === recipeId
     );
-}
-
-
-function closeRecipe() {
-
-    document
-        .getElementById("recipeModal")
-        .classList.remove("open");
-
-    document.body.style.overflow = "";
-
-    currentRecipe = null;
-}
-
-
-/* =========================================
-   WOCHENPLAN
-========================================= */
-
-function addToWeeklyPlan(recipeId, servings = null) {
-
-    const recipe = getRecipe(recipeId);
 
     if (!recipe) {
         return;
     }
 
+    currentRecipe = recipe;
+    currentRecipeServings = recipe.servings || 1;
+
+    renderRecipeModal();
+}
+
+
+function renderRecipeModal() {
+    const modal = document.getElementById("recipe-modal");
+
+    if (!modal || !currentRecipe) {
+        return;
+    }
+
+    const recipe = currentRecipe;
+
+    const imagePath = getRecipeImagePath(recipe);
+
+    const ingredients = Array.isArray(recipe.ingredients)
+        ? recipe.ingredients
+        : [];
+
+    const steps = Array.isArray(recipe.steps)
+        ? recipe.steps
+        : [];
+
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+
+    const titleElement = modal.querySelector("#modal-title");
+    const imageElement = modal.querySelector("#modal-image");
+    const descriptionElement = modal.querySelector("#modal-description");
+    const servingsElement = modal.querySelector("#modal-servings");
+    const ingredientsElement = modal.querySelector("#modal-ingredients");
+    const stepsElement = modal.querySelector("#modal-steps");
+    const addButton = modal.querySelector("#modal-add-plan");
+
+    if (titleElement) {
+        titleElement.textContent = recipe.title || "";
+    }
+
+    if (imageElement) {
+        imageElement.src = imagePath;
+        imageElement.alt = recipe.title || "";
+    }
+
+    if (descriptionElement) {
+        descriptionElement.textContent =
+            recipe.description || "";
+    }
+
+    if (servingsElement) {
+        servingsElement.textContent = currentRecipeServings;
+    }
+
+    if (ingredientsElement) {
+        ingredientsElement.innerHTML = ingredients
+            .map(ingredient => {
+                const amount = calculateIngredientAmount(
+                    ingredient
+                );
+
+                return `
+                    <li>
+                        <span>
+                            ${escapeHtml(ingredient.name || "")}
+                        </span>
+                        <strong>
+                            ${escapeHtml(formatAmount(amount))}
+                            ${escapeHtml(ingredient.unit || "")}
+                        </strong>
+                    </li>
+                `;
+            })
+            .join("");
+    }
+
+    if (stepsElement) {
+        stepsElement.innerHTML = steps
+            .map(
+                (step, index) => `
+                    <li>
+                        <span class="step-number">${index + 1}</span>
+                        <span>${escapeHtml(step)}</span>
+                    </li>
+                `
+            )
+            .join("");
+    }
+
+    if (addButton) {
+        addButton.onclick = () => {
+            addToWeeklyPlan(
+                recipe.id,
+                currentRecipeServings
+            );
+        };
+    }
+
+    setupModalServingControls();
+}
+
+
+function setupModalServingControls() {
+    const decreaseButton = document.getElementById(
+        "modal-servings-minus"
+    );
+
+    const increaseButton = document.getElementById(
+        "modal-servings-plus"
+    );
+
+    if (decreaseButton) {
+        decreaseButton.onclick = () => {
+            if (currentRecipeServings > 1) {
+                currentRecipeServings--;
+                renderRecipeModal();
+            }
+        };
+    }
+
+    if (increaseButton) {
+        increaseButton.onclick = () => {
+            currentRecipeServings++;
+            renderRecipeModal();
+        };
+    }
+}
+
+
+function closeRecipeModal() {
+    const modal = document.getElementById("recipe-modal");
+
+    if (!modal) {
+        return;
+    }
+
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+
+    currentRecipe = null;
+}
+
+
+function calculateIngredientAmount(ingredient) {
+    if (
+        !currentRecipe ||
+        typeof ingredient.amount !== "number"
+    ) {
+        return ingredient.amount ?? "";
+    }
+
+    const baseServings = currentRecipe.servings || 1;
+
+    return (
+        ingredient.amount *
+        (currentRecipeServings / baseServings)
+    );
+}
+
+
+/* =========================================================
+   WOCHENPLAN
+   ========================================================= */
+
+function addToWeeklyPlan(recipeId, servings = null) {
+    const recipe = recipes.find(
+        item => item.id === recipeId
+    );
+
+    if (!recipe) {
+        return;
+    }
+
+    const amountToAdd =
+        servings || recipe.servings || 1;
 
     const existing = weeklyPlan.find(
         item => item.recipeId === recipeId
     );
 
-
     if (existing) {
-
-        /*
-           Ist das Rezept schon im Plan,
-           erhöhen wir die Portionen um die
-           Grund-Portionszahl.
-
-           Beispiel:
-           Rezept = 2 Portionen
-           bereits 2 im Plan
-           + klicken
-           => 4 Portionen
-        */
-
-        existing.servings +=
-            servings || recipe.servings || 1;
-
+        existing.servings += amountToAdd;
     } else {
-
         weeklyPlan.push({
-
-            recipeId: recipe.id,
-
-            servings:
-                servings ||
-                recipe.servings ||
-                1
-
+            recipeId: recipeId,
+            servings: amountToAdd
         });
-
     }
 
-
     saveWeeklyPlan();
-
+    renderRecipes();
     renderWeeklyPlan();
     renderShoppingList();
-
-    updateWeeklyCount();
-    renderRecipes();
 }
 
 
 function removeFromWeeklyPlan(recipeId) {
-
     weeklyPlan = weeklyPlan.filter(
         item => item.recipeId !== recipeId
     );
 
-
     saveWeeklyPlan();
 
+    renderRecipes();
     renderWeeklyPlan();
     renderShoppingList();
-
-    updateWeeklyCount();
-    renderRecipes();
 }
 
 
-function changeWeeklyServings(recipeId, change) {
-
+function changePlanServings(recipeId, amount) {
     const item = weeklyPlan.find(
-        item => item.recipeId === recipeId
+        planItem => planItem.recipeId === recipeId
     );
 
     if (!item) {
         return;
     }
 
-
-    item.servings += change;
-
+    item.servings += amount;
 
     if (item.servings < 1) {
         item.servings = 1;
     }
-
 
     saveWeeklyPlan();
 
@@ -883,481 +785,370 @@ function changeWeeklyServings(recipeId, change) {
 
 
 function renderWeeklyPlan() {
+    const container = document.getElementById(
+        "weekly-plan-list"
+    );
 
-    const container =
-        document.getElementById("weeklyPlanList");
-
-    const empty =
-        document.getElementById("weeklyEmpty");
-
-
-    container.innerHTML = "";
-
-
-    if (weeklyPlan.length === 0) {
-
-        empty.classList.add("visible");
-
+    if (!container) {
         return;
     }
 
+    container.innerHTML = "";
 
-    empty.classList.remove("visible");
+    if (weeklyPlan.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                Noch keine Gerichte im Wochenplan.
+            </div>
+        `;
 
+        updatePlanCount();
+        return;
+    }
 
     weeklyPlan.forEach(item => {
-
-        const recipe =
-            getRecipe(item.recipeId);
-
+        const recipe = recipes.find(
+            recipeItem => recipeItem.id === item.recipeId
+        );
 
         if (!recipe) {
             return;
         }
 
+        const element = document.createElement("div");
 
-        const element =
-            document.createElement("article");
-
-        element.className = "weekly-item";
-
+        element.className = "plan-item";
 
         element.innerHTML = `
-
-            <div class="weekly-item-main">
-
-                <img
-                    src="${escapeHtml(recipe.image)}"
-                    alt=""
-                    class="weekly-item-image"
-                    onerror="this.style.display='none'"
-                >
-
-                <div>
-
-                    <h2 class="weekly-item-title">
-                        ${escapeHtml(recipe.title)}
-                    </h2>
-
-                    <div class="weekly-item-meta">
-                        Portionen
-                    </div>
-
-                </div>
-
+            <div class="plan-item-info">
+                <strong>${escapeHtml(recipe.title || "")}</strong>
             </div>
 
-
-            <div class="serving-control">
-
+            <div class="plan-item-controls">
                 <button
-                    class="serving-button"
-                    data-minus="${escapeHtml(recipe.id)}"
+                    type="button"
+                    class="plan-minus"
+                    aria-label="Portionen verringern"
                 >
                     −
                 </button>
 
-                <span class="serving-number">
-                    ${item.servings}
-                </span>
+                <span>${item.servings}</span>
 
                 <button
-                    class="serving-button"
-                    data-plus="${escapeHtml(recipe.id)}"
+                    type="button"
+                    class="plan-plus"
+                    aria-label="Portionen erhöhen"
                 >
                     +
                 </button>
 
                 <button
-                    class="remove-button"
-                    data-remove="${escapeHtml(recipe.id)}"
-                    aria-label="Rezept entfernen"
-                    title="Aus Wochenplan entfernen"
+                    type="button"
+                    class="plan-remove"
+                    aria-label="Gericht entfernen"
                 >
                     ×
                 </button>
-
             </div>
         `;
 
+        element
+            .querySelector(".plan-minus")
+            .addEventListener("click", () => {
+                changePlanServings(recipe.id, -1);
+            });
+
+        element
+            .querySelector(".plan-plus")
+            .addEventListener("click", () => {
+                changePlanServings(recipe.id, 1);
+            });
+
+        element
+            .querySelector(".plan-remove")
+            .addEventListener("click", () => {
+                removeFromWeeklyPlan(recipe.id);
+            });
 
         container.appendChild(element);
     });
 
-
-    container
-        .querySelectorAll("[data-minus]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                changeWeeklyServings(
-                    button.dataset.minus,
-                    -1
-                );
-
-            });
-
-        });
-
-
-    container
-        .querySelectorAll("[data-plus]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                changeWeeklyServings(
-                    button.dataset.plus,
-                    1
-                );
-
-            });
-
-        });
-
-
-    container
-        .querySelectorAll("[data-remove]")
-        .forEach(button => {
-
-            button.addEventListener("click", () => {
-
-                removeFromWeeklyPlan(
-                    button.dataset.remove
-                );
-
-            });
-
-        });
+    updatePlanCount();
 }
 
 
-/* =========================================
+function updatePlanCount() {
+    const badge = document.getElementById(
+        "weekly-plan-count"
+    );
+
+    if (!badge) {
+        return;
+    }
+
+    badge.textContent = weeklyPlan.length;
+}
+
+
+/* =========================================================
    EINKAUFSLISTE
-========================================= */
+   ========================================================= */
 
 function renderShoppingList() {
+    const container = document.getElementById(
+        "shopping-list"
+    );
 
-    const container =
-        document.getElementById("shoppingList");
+    if (!container) {
+        return;
+    }
 
-    const empty =
-        document.getElementById("shoppingEmpty");
+    const grouped = {};
 
+    weeklyPlan.forEach(planItem => {
+        const recipe = recipes.find(
+            item => item.id === planItem.recipeId
+        );
 
-    container.innerHTML = "";
+        if (!recipe || !Array.isArray(recipe.ingredients)) {
+            return;
+        }
 
+        const baseServings = recipe.servings || 1;
+        const scale = planItem.servings / baseServings;
 
-    if (weeklyPlan.length === 0) {
+        recipe.ingredients.forEach(ingredient => {
+            const category =
+                ingredient.category || "Sonstiges";
 
-        empty.classList.add("visible");
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+
+            const amount =
+                typeof ingredient.amount === "number"
+                    ? ingredient.amount * scale
+                    : ingredient.amount;
+
+            const unit = ingredient.unit || "";
+
+            const isSummable =
+                Array.isArray(config.summableUnits) &&
+                config.summableUnits.includes(unit);
+
+            if (isSummable) {
+                const existing = grouped[category].find(
+                    item =>
+                        item.name.toLowerCase() ===
+                            String(ingredient.name || "")
+                                .toLowerCase() &&
+                        item.unit === unit
+                );
+
+                if (existing) {
+                    existing.amount += Number(amount) || 0;
+                } else {
+                    grouped[category].push({
+                        name: ingredient.name || "",
+                        amount: Number(amount) || 0,
+                        unit: unit,
+                        summable: true
+                    });
+                }
+            } else {
+                grouped[category].push({
+                    name: ingredient.name || "",
+                    amount: amount,
+                    unit: unit,
+                    summable: false
+                });
+            }
+        });
+    });
+
+    const categories = Object.keys(grouped).sort();
+
+    if (categories.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                Die Einkaufsliste ist noch leer.
+            </div>
+        `;
 
         return;
     }
 
-
-    empty.classList.remove("visible");
-
-
-    const summableUnits =
-        config.summableUnits || [];
-
-
-    const grouped = {};
-    const unsummable = [];
-
-
-    weeklyPlan.forEach(planItem => {
-
-        const recipe =
-            getRecipe(planItem.recipeId);
-
-
-        if (!recipe) {
-            return;
-        }
-
-
-        const recipeBaseServings =
-            recipe.servings || 1;
-
-
-        const scale =
-            planItem.servings /
-            recipeBaseServings;
-
-
-        (recipe.ingredients || [])
-            .forEach(ingredient => {
-
-                const amount =
-                    ingredient.amount * scale;
-
-
-                const unit =
-                    ingredient.unit || "";
-
-
-                /*
-                   Nur Einheiten aus app.json
-                   werden zusammengezählt.
-                */
-
-                if (summableUnits.includes(unit)) {
-
-                    const key =
-                        `${ingredient.name}|||${unit}`;
-
-
-                    if (!grouped[key]) {
-
-                        grouped[key] = {
-
-                            name: ingredient.name,
-
-                            amount: 0,
-
-                            unit: unit,
-
-                            category:
-                                ingredient.category ||
-                                "Sonstiges"
-
-                        };
-
-                    }
-
-
-                    grouped[key].amount += amount;
-
-                } else {
-
-                    /*
-                       Nicht summierbare Mengen
-                       bleiben einzeln.
-                    */
-
-                    unsummable.push({
-
-                        name: ingredient.name,
-
-                        amount: amount,
-
-                        unit: unit,
-
-                        category:
-                            ingredient.category ||
-                            "Sonstiges",
-
-                        recipe:
-                            recipe.title
-
-                    });
-
-                }
-
-            });
-
-    });
-
-
-    const categories = {};
-
-
-    Object.values(grouped).forEach(item => {
-
-        if (!categories[item.category]) {
-            categories[item.category] = [];
-        }
-
-        categories[item.category].push(item);
-    });
-
-
-    unsummable.forEach(item => {
-
-        if (!categories[item.category]) {
-            categories[item.category] = [];
-        }
-
-        categories[item.category].push(item);
-    });
-
-
-    Object.keys(categories)
-        .sort()
-        .forEach(category => {
-
-            const section =
-                document.createElement("section");
-
-            section.className =
-                "shopping-category";
-
-
-            const items =
-                categories[category];
-
-
-            section.innerHTML = `
-
-                <h2 class="shopping-category-title">
-                    ${escapeHtml(category)}
-                </h2>
-
-                <ul class="shopping-items">
-
-                    ${items.map(item => `
-
-                        <li class="shopping-item">
-
-                            <label>
-
-                                <input
-                                    type="checkbox"
-                                    class="shopping-checkbox"
-                                >
-
-                                <span class="ingredient-name">
-                                    ${escapeHtml(item.name)}
-                                </span>
-
-                            </label>
-
-                            <span class="ingredient-amount">
-                                ${formatAmount(item.amount)}
-                                ${escapeHtml(item.unit)}
-                                ${
-                                    item.recipe
-                                        ? ` · ${escapeHtml(item.recipe)}`
-                                        : ""
-                                }
-                            </span>
-
-                        </li>
-
-                    `).join("")}
-
-                </ul>
+    container.innerHTML = categories
+        .map(category => {
+            const items = grouped[category];
+
+            return `
+                <div class="shopping-category">
+                    <h3>${escapeHtml(category)}</h3>
+
+                    <ul>
+                        ${items
+                            .map(
+                                (item, index) => `
+                                    <li>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                data-shopping-item="${escapeHtml(
+                                                    category
+                                                )}-${index}"
+                                            >
+
+                                            <span>
+                                                ${
+                                                    item.summable
+                                                        ? `${escapeHtml(
+                                                              formatAmount(
+                                                                  item.amount
+                                                              )
+                                                          )} ${escapeHtml(
+                                                              item.unit
+                                                          )} `
+                                                        : ""
+                                                }
+
+                                                ${escapeHtml(
+                                                    item.name
+                                                )}
+
+                                                ${
+                                                    !item.summable &&
+                                                    item.amount !==
+                                                        "" &&
+                                                    item.amount !==
+                                                        null &&
+                                                    item.amount !==
+                                                        undefined
+                                                        ? ` (${escapeHtml(
+                                                              formatAmount(
+                                                                  item.amount
+                                                              )
+                                                          )} ${escapeHtml(
+                                                              item.unit
+                                                          )})`
+                                                        : ""
+                                                }
+                                            </span>
+                                        </label>
+                                    </li>
+                                `
+                            )
+                            .join("")}
+                    </ul>
+                </div>
             `;
-
-
-            container.appendChild(section);
-        });
-
-
-    setupShoppingCheckboxes();
+        })
+        .join("");
 }
 
 
-function setupShoppingCheckboxes() {
-
-    document
-        .querySelectorAll(".shopping-checkbox")
-        .forEach(checkbox => {
-
-            checkbox.addEventListener(
-                "change",
-                () => {
-
-                    checkbox
-                        .closest(".shopping-item")
-                        .classList.toggle(
-                            "checked",
-                            checkbox.checked
-                        );
-
-                }
-            );
-
-        });
-}
-
-
-/* =========================================
+/* =========================================================
    AKTIONEN
-========================================= */
+   ========================================================= */
 
 function setupActions() {
+    const clearPlanButton = document.getElementById(
+        "clear-plan"
+    );
 
-    document
-        .getElementById("clearWeeklyPlan")
-        .addEventListener("click", () => {
-
-            if (weeklyPlan.length === 0) {
-                return;
-            }
-
-
+    if (clearPlanButton) {
+        clearPlanButton.addEventListener("click", () => {
             weeklyPlan = [];
 
             saveWeeklyPlan();
 
+            renderRecipes();
             renderWeeklyPlan();
             renderShoppingList();
-
-            updateWeeklyCount();
-            renderRecipes();
-
         });
-
-
-    document
-        .getElementById("resetShopping")
-        .addEventListener("click", () => {
-
-            document
-                .querySelectorAll(".shopping-checkbox")
-                .forEach(checkbox => {
-
-                    checkbox.checked = false;
-
-                    checkbox
-                        .closest(".shopping-item")
-                        .classList.remove("checked");
-
-                });
-
-        });
-}
-
-
-/* =========================================
-   HILFSFUNKTIONEN
-========================================= */
-
-function getRecipe(recipeId) {
-
-    return recipes.find(
-        recipe => recipe.id === recipeId
-    );
-}
-
-
-function updateWeeklyCount() {
-
-    document
-        .getElementById("weeklyCount")
-        .textContent = weeklyPlan.length;
-}
-
-
-function formatAmount(amount) {
-
-    if (Number.isInteger(amount)) {
-        return amount;
     }
 
+    const resetShoppingButton = document.getElementById(
+        "reset-shopping"
+    );
 
-    return Number(amount.toFixed(2))
-        .toString()
+    if (resetShoppingButton) {
+        resetShoppingButton.addEventListener("click", () => {
+            const checkboxes = document.querySelectorAll(
+                '#shopping-list input[type="checkbox"]'
+            );
+
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        });
+    }
+}
+
+
+/* =========================================================
+   SICHTBARE FEHLERMELDUNGEN
+   ========================================================= */
+
+function showStatus(message, type = "loading") {
+    let status = document.getElementById(
+        "app-status-message"
+    );
+
+    if (!status) {
+        status = document.createElement("div");
+
+        status.id = "app-status-message";
+
+        document.body.prepend(status);
+    }
+
+    status.className = `app-status ${type}`;
+    status.innerHTML = message;
+    status.style.display = "block";
+}
+
+
+function hideStatus() {
+    const status = document.getElementById(
+        "app-status-message"
+    );
+
+    if (status) {
+        status.style.display = "none";
+    }
+}
+
+
+/* =========================================================
+   HILFSFUNKTIONEN
+   ========================================================= */
+
+function formatAmount(amount) {
+    if (
+        amount === null ||
+        amount === undefined ||
+        amount === ""
+    ) {
+        return "";
+    }
+
+    const number = Number(amount);
+
+    if (Number.isNaN(number)) {
+        return String(amount);
+    }
+
+    return number
+        .toFixed(2)
+        .replace(/\.00$/, "")
+        .replace(/(\.\d)0$/, "$1")
         .replace(".", ",");
 }
 
 
 function escapeHtml(value) {
-
     return String(value ?? "")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
