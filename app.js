@@ -229,7 +229,11 @@ function renderRecipeModal() {
         ${(recipe.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join("")}
       </ol>
 
-      <button id="modal-add-plan" class="primary-button" type="button">Zum Wochenplan hinzufügen</button>
+      <button id="modal-add-plan" class="primary-button" type="button">
+  ${weeklyPlan.some(item => item.recipeId === recipe.id)
+    ? "✓ Bereits im Wochenplan"
+    : "Zum Wochenplan hinzufügen"}
+</button>
     </div>
   `;
 
@@ -246,8 +250,9 @@ function renderRecipeModal() {
   });
 
   document.getElementById("modal-add-plan").addEventListener("click", () => {
-    addToWeeklyPlan(recipe.id, currentRecipeServings);
-  });
+  addToWeeklyPlan(recipe.id, currentRecipeServings);
+  renderRecipeModal();
+});
 }
 
 function setupModal() {
