@@ -1,3 +1,5 @@
+alert("app.js wird ausgeführt);
+
 let config = {};
 let recipes = [];
 let selectedTags = new Set();
