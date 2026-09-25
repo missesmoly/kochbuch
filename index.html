@@ -2,191 +2,335 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Mein Kochbuch</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="site-header">
-    <div class="header-inner">
+    <!-- Sichtbare Fehlermeldung / Ladeanzeige -->
+    <div
+        id="app-status-message"
+        class="app-status"
+        style="display: none;"
+    ></div>
 
-        <button class="logo-button" id="navRecipes">
-            <span class="logo-small">MEIN</span>
-            <span class="logo-main">Kochbuch</span>
-        </button>
 
-        <nav class="main-nav">
-            <button class="nav-button active" id="navRecipesButton">
-                Rezepte
+    <!-- HEADER -->
+    <header class="site-header">
+        <div class="header-inner">
+
+            <button
+                id="logo-button"
+                class="logo"
+                type="button"
+            >
+                Mein Kochbuch
             </button>
 
-            <button class="nav-button" id="navWeekly">
-                Wochenplan
-                <span class="count-badge" id="weeklyCount">0</span>
-            </button>
-
-            <button class="nav-button" id="navShopping">
-                Einkaufsliste
-            </button>
-        </nav>
-
-    </div>
-</header>
-
-
-<main>
-
-    <!-- REZEPTE -->
-    <section class="view active" id="recipesView">
-
-        <div class="page-intro">
-            <p class="eyebrow">Meine Sammlung</p>
-            <h1>Rezepte</h1>
-            <p class="intro-text">
-                Lieblingsrezepte, Ideen für die Woche und Dinge,
-                die man einfach gerne kocht.
-            </p>
-        </div>
-
-        <div class="recipe-tools">
-
-            <div class="search-wrapper">
-                <input
-                    type="search"
-                    id="searchInput"
-                    placeholder="Rezepte oder Zutaten suchen ..."
-                    autocomplete="off"
-                >
-            </div>
-
-            <div class="tag-area">
-                <span class="filter-label">Filtern nach</span>
-
-                <div class="tag-list" id="tagList">
-                    <!-- Wird von app.js gefüllt -->
-                </div>
+            <nav class="main-nav">
 
                 <button
-                    class="clear-filters"
-                    id="clearFilters"
+                    id="nav-recipes"
+                    class="nav-button active"
+                    type="button"
+                >
+                    Rezepte
+                </button>
+
+                <button
+                    id="nav-plan"
+                    class="nav-button"
+                    type="button"
+                >
+                    Wochenplan
+                    <span
+                        id="weekly-plan-count"
+                        class="nav-count"
+                    >0</span>
+                </button>
+
+                <button
+                    id="nav-shopping"
+                    class="nav-button"
+                    type="button"
+                >
+                    Einkaufsliste
+                </button>
+
+            </nav>
+
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- =========================================
+             REZEPTE
+        ========================================== -->
+
+        <section
+            id="section-recipes"
+            class="page-section active-section"
+        >
+
+            <div class="section-inner">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Meine Sammlung</p>
+                        <h1>Rezepte</h1>
+                    </div>
+                </div>
+
+
+                <!-- SUCHE -->
+                <div class="search-area">
+
+                    <input
+                        id="search-input"
+                        class="search-input"
+                        type="search"
+                        placeholder="Rezepte oder Zutaten suchen …"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <!-- TAGS -->
+                <div
+                    id="tag-filters"
+                    class="tag-filters"
+                ></div>
+
+
+                <button
+                    id="reset-filters"
+                    class="reset-button"
                     type="button"
                 >
                     Filter zurücksetzen
                 </button>
+
+
+                <!-- REZEPTE -->
+                <div
+                    id="recipe-grid"
+                    class="recipe-grid"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================================
+             WOCHENPLAN
+        ========================================== -->
+
+        <section
+            id="section-plan"
+            class="page-section"
+        >
+
+            <div class="section-inner">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Meine Auswahl</p>
+                        <h1>Wochenplan</h1>
+                    </div>
+
+                    <button
+                        id="clear-plan"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        Plan leeren
+                    </button>
+                </div>
+
+
+                <div
+                    id="weekly-plan-list"
+                    class="weekly-plan-list"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================================
+             EINKAUFSLISTE
+        ========================================== -->
+
+        <section
+            id="section-shopping"
+            class="page-section"
+        >
+
+            <div class="section-inner">
+
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">Aus deinem Wochenplan</p>
+                        <h1>Einkaufsliste</h1>
+                    </div>
+
+                    <button
+                        id="reset-shopping"
+                        class="secondary-button"
+                        type="button"
+                    >
+                        Haken zurücksetzen
+                    </button>
+                </div>
+
+
+                <div
+                    id="shopping-list"
+                    class="shopping-list"
+                ></div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================
+         REZEPT-MODAL
+    ========================================== -->
+
+    <div
+        id="recipe-modal"
+        class="recipe-modal"
+        aria-hidden="true"
+    >
+
+        <div class="recipe-modal-content">
+
+            <button
+                id="modal-close"
+                class="modal-close"
+                type="button"
+                aria-label="Rezept schließen"
+            >
+                ×
+            </button>
+
+
+            <img
+                id="modal-image"
+                class="modal-image"
+                src=""
+                alt=""
+            >
+
+
+            <div class="modal-body">
+
+                <p class="eyebrow">Rezept</p>
+
+                <h2 id="modal-title"></h2>
+
+                <p
+                    id="modal-description"
+                    class="modal-description"
+                ></p>
+
+
+                <!-- PORTIONEN -->
+
+                <div class="servings-control">
+
+                    <span>Portionen</span>
+
+                    <div class="servings-buttons">
+
+                        <button
+                            id="modal-servings-minus"
+                            type="button"
+                            aria-label="Portionen verringern"
+                        >
+                            −
+                        </button>
+
+                        <strong id="modal-servings">1</strong>
+
+                        <button
+                            id="modal-servings-plus"
+                            type="button"
+                            aria-label="Portionen erhöhen"
+                        >
+                            +
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ZUTATEN -->
+
+                <div class="modal-section">
+
+                    <h3>Zutaten</h3>
+
+                    <ul
+                        id="modal-ingredients"
+                        class="ingredient-list"
+                    ></ul>
+
+                </div>
+
+
+                <!-- ZUBEREITUNG -->
+
+                <div class="modal-section">
+
+                    <h3>Zubereitung</h3>
+
+                    <ol
+                        id="modal-steps"
+                        class="steps-list"
+                    ></ol>
+
+                </div>
+
+
+                <button
+                    id="modal-add-plan"
+                    class="primary-button"
+                    type="button"
+                >
+                    Zum Wochenplan hinzufügen
+                </button>
+
             </div>
 
         </div>
 
-        <div class="recipe-results-header">
-            <span id="resultCount">0 Rezepte</span>
-        </div>
-
-        <div class="recipe-grid" id="recipeGrid">
-            <!-- Rezeptkarten -->
-        </div>
-
-    </section>
-
-
-    <!-- WOCHENPLAN -->
-    <section class="view" id="weeklyView">
-
-        <div class="page-intro compact">
-            <p class="eyebrow">Diese Woche</p>
-            <h1>Wochenplan</h1>
-            <p class="intro-text">
-                Sammle hier einfach die Gerichte, die du diese Woche
-                kochen möchtest.
-            </p>
-        </div>
-
-        <div class="section-actions">
-            <button class="secondary-button" id="clearWeeklyPlan">
-                Plan leeren
-            </button>
-        </div>
-
-        <div id="weeklyPlanList" class="weekly-plan-list">
-            <!-- Wochenplan -->
-        </div>
-
-        <div class="empty-state" id="weeklyEmpty">
-            <span class="empty-symbol">＋</span>
-            <h2>Noch nichts geplant</h2>
-            <p>
-                Füge Rezepte über das kleine + auf einer Rezeptkarte
-                oder direkt im Rezept hinzu.
-            </p>
-        </div>
-
-    </section>
-
-
-    <!-- EINKAUFSLISTE -->
-    <section class="view" id="shoppingView">
-
-        <div class="page-intro compact">
-            <p class="eyebrow">Aus deinem Wochenplan</p>
-            <h1>Einkaufsliste</h1>
-            <p class="intro-text">
-                Die Zutaten deiner geplanten Gerichte, zusammengefasst
-                wo eine Mengenangabe sinnvoll summiert werden kann.
-            </p>
-        </div>
-
-        <div class="section-actions">
-            <button class="secondary-button" id="resetShopping">
-                Haken zurücksetzen
-            </button>
-        </div>
-
-        <div id="shoppingList" class="shopping-list">
-            <!-- Einkaufsliste -->
-        </div>
-
-        <div class="empty-state" id="shoppingEmpty">
-            <span class="empty-symbol">□</span>
-            <h2>Deine Einkaufsliste ist leer</h2>
-            <p>
-                Plane zuerst ein paar Gerichte für die Woche.
-            </p>
-        </div>
-
-    </section>
-
-</main>
-
-
-<!-- REZEPT-MODAL -->
-<div class="modal-backdrop" id="recipeModal">
-
-    <div class="recipe-modal" role="dialog" aria-modal="true">
-
-        <button
-            class="modal-close"
-            id="modalClose"
-            aria-label="Rezept schließen"
-        >
-            ×
-        </button>
-
-        <div id="modalContent">
-            <!-- Rezept -->
-        </div>
-
     </div>
 
-</div>
+
+    <footer class="site-footer">
+        <p>Mein Kochbuch</p>
+    </footer>
 
 
-<footer class="site-footer">
-    <p>Mein Kochbuch</p>
-</footer>
-
-
-<script src="app.js"></script>
+    <!-- WICHTIG: app.js wird ganz am Ende geladen -->
+    <script src="app.js"></script>
 
 </body>
 </html>
