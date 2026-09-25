@@ -4,69 +4,287 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Kochbuch</title>
+    <title>Mein Kochbuch</title>
+
+    <meta
+        name="description"
+        content="Mein persönliches digitales Kochbuch"
+    >
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<header class="header">
-    <div class="header-inner">
+<header class="site-header">
+    <div class="container header-inner">
+        <a href="index.html" class="logo">
+            Mein Kochbuch
+        </a>
 
-        <div>
-            <h1>Kochbuch</h1>
-            <p>Meine Rezepte</p>
-        </div>
-
+        <nav class="main-nav">
+            <a href="#rezepte">Rezepte</a>
+            <a href="#wochenplan">Wochenplan</a>
+            <a href="#einkaufsliste">Einkaufsliste</a>
+        </nav>
     </div>
 </header>
 
 
-<main class="container">
+<main>
 
-    <section class="toolbar">
+    <!-- HERO / SUCHE -->
+    <section class="hero">
+        <div class="container">
 
-        <input
-            type="search"
-            id="search"
-            placeholder="Rezepte suchen..."
-            autocomplete="off"
-        >
+            <p class="eyebrow">Persönliche Rezeptsammlung</p>
 
-        <div id="tags" class="tags"></div>
+            <h1>
+                Was möchtest du heute kochen?
+            </h1>
+
+            <div class="search-wrapper">
+                <label for="search" class="visually-hidden">
+                    Rezepte durchsuchen
+                </label>
+
+                <input
+                    type="search"
+                    id="search"
+                    placeholder="Nach Rezepten oder Zutaten suchen …"
+                    autocomplete="off"
+                >
+            </div>
+
+            <!-- TAGS -->
+            <div class="tag-filter" id="tag-filter">
+                <button
+                    class="tag-button active"
+                    data-tag="Alle"
+                >
+                    Alle
+                </button>
+
+                <button
+                    class="tag-button"
+                    data-tag="Hauptgericht"
+                >
+                    Hauptgericht
+                </button>
+
+                <button
+                    class="tag-button"
+                    data-tag="MealPrep"
+                >
+                    MealPrep
+                </button>
+
+                <button
+                    class="tag-button"
+                    data-tag="Vegan"
+                >
+                    Vegan
+                </button>
+
+                <button
+                    class="tag-button"
+                    data-tag="schnell"
+                >
+                    Schnell
+                </button>
+
+                <button
+                    class="tag-button"
+                    data-tag="Dessert"
+                >
+                    Dessert
+                </button>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- REZEPTE -->
+    <section id="rezepte" class="section">
+        <div class="container">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Sammlung</p>
+                    <h2>Rezepte</h2>
+                </div>
+
+                <span id="recipe-count" class="recipe-count"></span>
+            </div>
+
+            <div
+                id="recipe-grid"
+                class="recipe-grid"
+            >
+                <!-- Wird von app.js gefüllt -->
+            </div>
+
+            <p
+                id="no-results"
+                class="no-results"
+                hidden
+            >
+                Keine passenden Rezepte gefunden.
+            </p>
+
+        </div>
+    </section>
+
+
+    <!-- WOCHENPLAN -->
+    <section id="wochenplan" class="section section-alt">
+
+        <div class="container">
+
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Planung</p>
+                    <h2>Wochenplan</h2>
+                </div>
+
+                <button
+                    id="clear-plan"
+                    class="button button-secondary"
+                >
+                    Plan leeren
+                </button>
+            </div>
+
+
+            <div class="week-grid">
+
+                <div class="day" data-day="Montag">
+                    <h3>Montag</h3>
+
+                    <div class="meal-slot" data-slot="Montag">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="day" data-day="Dienstag">
+                    <h3>Dienstag</h3>
+
+                    <div class="meal-slot" data-slot="Dienstag">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="day" data-day="Mittwoch">
+                    <h3>Mittwoch</h3>
+
+                    <div class="meal-slot" data-slot="Mittwoch">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="day" data-day="Donnerstag">
+                    <h3>Donnerstag</h3>
+
+                    <div class="meal-slot" data-slot="Donnerstag">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="day" data-day="Freitag">
+                    <h3>Freitag</h3>
+
+                    <div class="meal-slot" data-slot="Freitag">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="day" data-day="Samstag">
+                    <h3>Samstag</h3>
+
+                    <div class="meal-slot" data-slot="Samstag">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+
+                <div class="day" data-day="Sonntag">
+                    <h3>Sonntag</h3>
+
+                    <div class="meal-slot" data-slot="Sonntag">
+                        <span class="empty-slot">
+                            Noch kein Gericht
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
 
     </section>
 
 
-    <section id="recipe-list" class="recipe-grid">
+    <!-- EINKAUFSLISTE -->
+    <section id="einkaufsliste" class="section">
 
-        <p class="loading">
-            Rezepte werden geladen...
-        </p>
+        <div class="container">
+
+            <div class="section-heading">
+
+                <div>
+                    <p class="eyebrow">Aus deinem Wochenplan</p>
+                    <h2>Einkaufsliste</h2>
+                </div>
+
+                <button
+                    id="clear-shopping-list"
+                    class="button button-secondary"
+                >
+                    Liste leeren
+                </button>
+
+            </div>
+
+
+            <div
+                id="shopping-list"
+                class="shopping-list"
+            >
+                <!-- Wird von app.js erzeugt -->
+            </div>
+
+        </div>
 
     </section>
 
 </main>
 
 
-<div id="recipe-modal" class="modal hidden">
-
-    <div class="modal-content">
-
-        <button
-            id="close-modal"
-            class="close-button"
-            aria-label="Schließen"
-        >
-            ×
-        </button>
-
-        <div id="recipe-detail"></div>
-
+<footer class="site-footer">
+    <div class="container">
+        <p>
+            Mein Kochbuch
+        </p>
     </div>
-
-</div>
+</footer>
 
 
 <script src="app.js"></script>
