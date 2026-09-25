@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mein Kochbuch</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="logo" id="logo">Mein Kochbuch</a>
+    <nav class="main-nav">
+      <button class="nav-button active" data-section="recipes">Rezepte</button>
+      <button class="nav-button" data-section="plan">Wochenplan <span id="plan-count">0</span></button>
+      <button class="nav-button" data-section="shopping">Einkaufsliste</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section id="recipes" class="view active">
+    <div class="page-heading">
+      <h1>Rezepte</h1>
+      <p>Deine Sammlung auf einen Blick.</p>
+    </div>
+
+    <div class="search-area">
+      <input id="search-input" type="search" placeholder="Rezepte oder Zutaten suchen …">
+      <div id="tag-filters" class="tag-filters"></div>
+      <button id="reset-filters" class="secondary-button">Filter zurücksetzen</button>
+    </div>
+
+    <div id="loading" class="status-message">Rezepte werden geladen …</div>
+    <div id="error-message" class="status-message error" hidden></div>
+    <div id="recipe-grid" class="recipe-grid"></div>
+  </section>
+
+  <section id="plan" class="view">
+    <div class="page-heading">
+      <h1>Wochenplan</h1>
+      <p>Speichere hier die Gerichte, die du kochen möchtest.</p>
+    </div>
+    <div id="weekly-plan-list" class="weekly-plan-list"></div>
+    <button id="clear-plan" class="secondary-button">Plan leeren</button>
+  </section>
+
+  <section id="shopping" class="view">
+    <div class="page-heading">
+      <h1>Einkaufsliste</h1>
+      <p>Aus deinem Wochenplan zusammengestellt.</p>
+    </div>
+    <div id="shopping-list" class="shopping-list"></div>
+    <button id="reset-shopping" class="secondary-button">Haken zurücksetzen</button>
+  </section>
+</main>
+
+<div id="recipe-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-modal></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true">
+    <button id="modal-close" class="modal-close" aria-label="Schließen">×</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<footer class="site-footer">Mein Kochbuch</footer>
+<script src="app.js"></script>
+</body>
+</html>
