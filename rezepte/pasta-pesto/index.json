@@ -1,0 +1,42 @@
+{
+    "id": "pasta-pesto",
+    "title": "Pasta mit Pesto",
+    "description": "Schnelle Pasta mit cremigem Pesto.",
+    "image": "bild.jpg",
+
+    "tags": [
+        "Hauptgericht",
+        "schnell"
+    ],
+
+    "servings": 2,
+
+    "ingredients": [
+        {
+            "name": "Pasta",
+            "amount": 250,
+            "unit": "g",
+            "category": "Trockenvorrat"
+        },
+        {
+            "name": "Pesto",
+            "amount": 120,
+            "unit": "g",
+            "category": "Trockenvorrat"
+        },
+        {
+            "name": "Parmesan",
+            "amount": 40,
+            "unit": "g",
+            "category": "Milchprodukte"
+        }
+    ],
+
+    "steps": [
+        "Pasta nach Packungsanleitung kochen.",
+        "Pasta abgießen und etwas Kochwasser auffangen.",
+        "Pesto mit der Pasta vermischen.",
+        "Bei Bedarf etwas Kochwasser hinzufügen.",
+        "Mit Parmesan servieren."
+    ]
+}
