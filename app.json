@@ -1,0 +1,26 @@
+{
+    "name": "Mein Kochbuch",
+    "version": "1.0.0",
+    "language": "de",
+    "description": "Mein persönliches digitales Kochbuch",
+
+    "recipePath": "rezepte/index.json",
+
+    "tags": [
+        "Hauptgericht",
+        "MealPrep",
+        "Vegan",
+        "schnell",
+        "Dessert"
+    ],
+
+    "summableUnits": [
+        "g",
+        "kg",
+        "ml",
+        "l",
+        "EL",
+        "TL",
+        "Stück"
+    ]
+}
