@@ -14,6 +14,7 @@ const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
    START
 ========================================= */
 
+
 document.addEventListener("DOMContentLoaded", init);
 
 
