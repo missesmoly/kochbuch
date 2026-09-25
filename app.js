@@ -1,937 +1,648 @@
+let config = {};
 let recipes = [];
 
-let activeTag = "Alle";
-
+let selectedTags = new Set();
 let weeklyPlan = [];
+
+let currentRecipe = null;
+let currentRecipeServings = 1;
+
+const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
 
 /* =========================================
-   INITIALISIERUNG
-   ========================================= */
+   START
+========================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
+document.addEventListener("DOMContentLoaded", init);
 
+
+async function init() {
+
+    try {
+
+        await loadConfig();
         await loadRecipes();
 
         loadWeeklyPlan();
 
         setupNavigation();
-
         setupSearch();
-
-        setupTagFilter();
-
+        setupFilters();
         setupModal();
+        setupActions();
 
-        setupClearButtons();
-
-        setupRecipeNavigation();
-
+        renderTagButtons();
         renderRecipes();
-
         renderWeeklyPlan();
-
         renderShoppingList();
-
-    }
-);
-
-
-/* =========================================
-   REZEPTE LADEN
-   ========================================= */
-
-async function loadRecipes() {
-
-    try {
-
-        const response =
-            await fetch("rezepte/index.json");
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                "Rezeptindex konnte nicht geladen werden."
-            );
-
-        }
-
-
-        const data =
-            await response.json();
-
-
-        recipes =
-            data.recipes || [];
-
+        updateWeeklyCount();
 
     } catch (error) {
 
         console.error(error);
 
-        document
-            .getElementById("recipe-grid")
-            .innerHTML = `
+        document.getElementById("recipeGrid").innerHTML = `
+            <div class="empty-state visible">
+                <h2>Rezepte konnten nicht geladen werden</h2>
                 <p>
-                    Die Rezepte konnten nicht
-                    geladen werden.
+                    Bitte überprüfe die JSON-Dateien und die Ordnerstruktur.
                 </p>
-            `;
-
+            </div>
+        `;
     }
+}
+
+
+/* =========================================
+   DATEN LADEN
+========================================= */
+
+async function loadConfig() {
+
+    const response = await fetch("app.json");
+
+    if (!response.ok) {
+        throw new Error("app.json konnte nicht geladen werden.");
+    }
+
+    config = await response.json();
+}
+
+
+async function loadRecipes() {
+
+    const response = await fetch(config.recipePath);
+
+    if (!response.ok) {
+        throw new Error("rezepte/index.json konnte nicht geladen werden.");
+    }
+
+    const catalog = await response.json();
+
+    recipes = await Promise.all(
+        catalog.recipes.map(async recipe => {
+
+            const recipeResponse = await fetch(
+                `rezepte/${recipe.path.replace(/^rezepte\//, "")}`
+            );
+
+            if (!recipeResponse.ok) {
+                throw new Error(
+                    `Rezept konnte nicht geladen werden: ${recipe.id}`
+                );
+            }
+
+            const fullRecipe = await recipeResponse.json();
+
+            return {
+                ...recipe,
+                ...fullRecipe
+            };
+        })
+    );
+}
+
+
+/* =========================================
+   LOCAL STORAGE
+========================================= */
+
+function loadWeeklyPlan() {
+
+    try {
+
+        const stored = localStorage.getItem(WEEKLY_STORAGE_KEY);
+
+        weeklyPlan = stored
+            ? JSON.parse(stored)
+            : [];
+
+    } catch (error) {
+
+        console.error(error);
+
+        weeklyPlan = [];
+    }
+}
+
+
+function saveWeeklyPlan() {
+
+    localStorage.setItem(
+        WEEKLY_STORAGE_KEY,
+        JSON.stringify(weeklyPlan)
+    );
 
 }
 
 
 /* =========================================
    NAVIGATION
-   ========================================= */
+========================================= */
 
 function setupNavigation() {
 
-    const buttons =
-        document.querySelectorAll(
-            ".nav-button"
-        );
+    document
+        .getElementById("navRecipes")
+        .addEventListener("click", () => showView("recipes"));
 
+    document
+        .getElementById("navRecipesButton")
+        .addEventListener("click", () => showView("recipes"));
 
-    const views = {
+    document
+        .getElementById("navWeekly")
+        .addEventListener("click", () => showView("weekly"));
 
-        recipes:
-            document.getElementById(
-                "recipe-view"
-            ),
-
-        "weekly-plan":
-            document.getElementById(
-                "weekly-plan-view"
-            ),
-
-        "shopping-list":
-            document.getElementById(
-                "shopping-list-view"
-            )
-
-    };
-
-
-    buttons.forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                const target =
-                    button.dataset.view;
-
-
-                Object.values(views)
-                    .forEach(view => {
-                        view.hidden = true;
-                    });
-
-
-                views[target].hidden =
-                    false;
-
-
-                buttons.forEach(btn => {
-
-                    btn.classList.remove(
-                        "active"
-                    );
-
-                });
-
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                if (
-                    target === "weekly-plan"
-                ) {
-
-                    renderWeeklyPlan();
-
-                }
-
-
-                if (
-                    target === "shopping-list"
-                ) {
-
-                    renderShoppingList();
-
-                }
-
-            }
-        );
-
-    });
-
+    document
+        .getElementById("navShopping")
+        .addEventListener("click", () => showView("shopping"));
 }
 
 
-/* =========================================
-   ZURÜCK ZU REZEPTEN
-   ========================================= */
+function showView(viewName) {
 
-function setupRecipeNavigation() {
+    document.querySelectorAll(".view").forEach(view => {
+        view.classList.remove("active");
+    });
 
     document
-        .querySelectorAll(
-            "[data-go-to-recipes]"
-        )
-        .forEach(button => {
+        .getElementById(`${viewName}View`)
+        .classList.add("active");
 
-            button.addEventListener(
-                "click",
-                () => {
 
-                    document
-                        .querySelector(
-                            '[data-view="recipes"]'
-                        )
-                        .click();
+    document.querySelectorAll(".nav-button").forEach(button => {
+        button.classList.remove("active");
+    });
 
-                }
-            );
 
-        });
+    if (viewName === "recipes") {
+        document
+            .getElementById("navRecipesButton")
+            .classList.add("active");
+    }
 
+    if (viewName === "weekly") {
+        document
+            .getElementById("navWeekly")
+            .classList.add("active");
+    }
+
+    if (viewName === "shopping") {
+        document
+            .getElementById("navShopping")
+            .classList.add("active");
+
+        renderShoppingList();
+    }
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
 
 /* =========================================
    SUCHE
-   ========================================= */
+========================================= */
 
 function setupSearch() {
 
-    const search =
-        document.getElementById(
-            "search"
-        );
+    document
+        .getElementById("searchInput")
+        .addEventListener("input", renderRecipes);
+}
 
 
-    search.addEventListener(
-        "input",
-        renderRecipes
-    );
+function recipeMatchesSearch(recipe, searchTerm) {
 
+    if (!searchTerm) {
+        return true;
+    }
+
+    const searchableText = [
+
+        recipe.title,
+        recipe.description,
+        ...(recipe.tags || []),
+
+        ...(recipe.ingredients || []).map(
+            ingredient => ingredient.name
+        )
+
+    ]
+        .join(" ")
+        .toLowerCase();
+
+
+    return searchableText.includes(searchTerm);
 }
 
 
 /* =========================================
-   TAG FILTER
-   ========================================= */
+   MEHRFACH-TAG-FILTER
+========================================= */
 
-function setupTagFilter() {
+function renderTagButtons() {
 
-    document
-        .querySelectorAll(
-            ".tag-button"
-        )
-        .forEach(button => {
+    const container = document.getElementById("tagList");
 
-            button.addEventListener(
-                "click",
-                () => {
+    container.innerHTML = "";
 
-                    activeTag =
-                        button.dataset.tag;
+    const tags = config.tags || [];
 
+    tags.forEach(tag => {
 
-                    document
-                        .querySelectorAll(
-                            ".tag-button"
-                        )
-                        .forEach(btn => {
+        const button = document.createElement("button");
 
-                            btn.classList.remove(
-                                "active"
-                            );
+        button.type = "button";
+        button.className = "tag-button";
 
-                        });
+        button.textContent = tag;
 
+        button.addEventListener("click", () => {
 
-                    button.classList.add(
-                        "active"
-                    );
+            if (selectedTags.has(tag)) {
+                selectedTags.delete(tag);
+            } else {
+                selectedTags.add(tag);
+            }
 
-
-                    renderRecipes();
-
-                }
+            button.classList.toggle(
+                "active",
+                selectedTags.has(tag)
             );
 
+            renderRecipes();
         });
 
+        container.appendChild(button);
+    });
+}
+
+
+function setupFilters() {
+
+    document
+        .getElementById("clearFilters")
+        .addEventListener("click", () => {
+
+            selectedTags.clear();
+
+            document
+                .querySelectorAll(".tag-button")
+                .forEach(button => {
+                    button.classList.remove("active");
+                });
+
+            renderRecipes();
+        });
+}
+
+
+function recipeMatchesTags(recipe) {
+
+    if (selectedTags.size === 0) {
+        return true;
+    }
+
+    const recipeTags = recipe.tags || [];
+
+    /*
+       WICHTIG:
+
+       Alle ausgewählten Tags müssen vorhanden sein.
+
+       Beispiel:
+       Vegan + MealPrep
+
+       zeigt nur Rezepte,
+       die BEIDE Tags besitzen.
+    */
+
+    return [...selectedTags].every(tag =>
+        recipeTags.includes(tag)
+    );
 }
 
 
 /* =========================================
-   REZEPTE FILTERN
-   ========================================= */
+   REZEPTE RENDERN
+========================================= */
 
-function getFilteredRecipes() {
+function renderRecipes() {
 
-    const search =
-        document
-            .getElementById("search")
-            .value
-            .trim()
-            .toLowerCase();
+    const grid = document.getElementById("recipeGrid");
 
-
-    return recipes.filter(recipe => {
-
-        const matchesTag =
-            activeTag === "Alle" ||
-            recipe.tags.includes(
-                activeTag
-            );
+    const searchTerm = document
+        .getElementById("searchInput")
+        .value
+        .trim()
+        .toLowerCase();
 
 
-        if (!search) {
-
-            return matchesTag;
-
-        }
-
-
-        const title =
-            recipe.title
-                .toLowerCase();
-
-
-        const description =
-            (
-                recipe.description || ""
-            ).toLowerCase();
-
-
-        const tags =
-            recipe.tags
-                .join(" ")
-                .toLowerCase();
-
-
-        const ingredients =
-            recipe.ingredients
-                .map(
-                    ingredient =>
-                        ingredient.name
-                )
-                .join(" ")
-                .toLowerCase();
-
-
-        const matchesSearch =
-
-            title.includes(search) ||
-
-            description.includes(search) ||
-
-            tags.includes(search) ||
-
-            ingredients.includes(search);
-
+    const filteredRecipes = recipes.filter(recipe => {
 
         return (
-            matchesTag &&
-            matchesSearch
+            recipeMatchesSearch(recipe, searchTerm) &&
+            recipeMatchesTags(recipe)
         );
 
     });
 
-}
 
-
-/* =========================================
-   REZEPTE DARSTELLEN
-   ========================================= */
-
-function renderRecipes() {
-
-    const grid =
-        document.getElementById(
-            "recipe-grid"
-        );
-
-
-    const noResults =
-        document.getElementById(
-            "no-results"
-        );
-
-
-    const count =
-        document.getElementById(
-            "recipe-count"
-        );
-
-
-    const filtered =
-        getFilteredRecipes();
-
-
-    grid.innerHTML = "";
-
-
-    count.textContent =
-        `${filtered.length} ${
-            filtered.length === 1
+    document.getElementById("resultCount").textContent =
+        `${filteredRecipes.length} ${
+            filteredRecipes.length === 1
                 ? "Rezept"
                 : "Rezepte"
         }`;
 
 
-    noResults.hidden =
-        filtered.length !== 0;
+    grid.innerHTML = "";
 
 
-    filtered.forEach(recipe => {
+    if (filteredRecipes.length === 0) {
 
-        const card =
-            document.createElement(
-                "article"
-            );
+        grid.innerHTML = `
+            <div class="empty-state visible">
+                <span class="empty-symbol">⌕</span>
+                <h2>Keine Rezepte gefunden</h2>
+                <p>
+                    Versuche einen anderen Suchbegriff
+                    oder ändere deine Filter.
+                </p>
+            </div>
+        `;
+
+        return;
+    }
 
 
-        card.className =
-            "recipe-card";
+    filteredRecipes.forEach(recipe => {
+
+        const card = document.createElement("article");
+
+        card.className = "recipe-card";
+
+
+        const isInPlan = weeklyPlan.some(
+            item => item.recipeId === recipe.id
+        );
 
 
         card.innerHTML = `
 
             <button
-                type="button"
-                class="recipe-card-button"
+                class="add-recipe-button ${
+                    isInPlan ? "added" : ""
+                }"
+                data-add="${escapeHtml(recipe.id)}"
+                aria-label="${
+                    isInPlan
+                        ? "Bereits im Wochenplan"
+                        : "Zum Wochenplan hinzufügen"
+                }"
+                title="${
+                    isInPlan
+                        ? "Bereits im Wochenplan"
+                        : "Zum Wochenplan hinzufügen"
+                }"
             >
+                ${isInPlan ? "✓" : "+"}
+            </button>
 
+
+            <button
+                class="recipe-image-button"
+                data-open="${escapeHtml(recipe.id)}"
+            >
                 <img
-                    src="rezepte/${recipe.image}"
-                    alt="${escapeHtml(
-                        recipe.title
-                    )}"
                     class="recipe-image"
+                    src="${escapeHtml(recipe.image)}"
+                    alt="${escapeHtml(recipe.title)}"
+                    loading="lazy"
+                    onerror="this.style.display='none'"
                 >
+            </button>
 
-                <div class="recipe-content">
 
-                    <h3 class="recipe-title">
-                        ${escapeHtml(
-                            recipe.title
-                        )}
-                    </h3>
+            <div class="recipe-card-content">
 
-                    <p class="recipe-description">
-                        ${escapeHtml(
-                            recipe.description || ""
-                        )}
-                    </p>
+                <h2>
+                    ${escapeHtml(recipe.title)}
+                </h2>
 
-                    <div class="recipe-tags">
+                <p class="recipe-card-description">
+                    ${escapeHtml(recipe.description || "")}
+                </p>
 
-                        ${recipe.tags
-                            .map(tag => `
-                                <span
-                                    class="recipe-tag"
-                                >
-                                    ${escapeHtml(tag)}
-                                </span>
-                            `)
-                            .join("")}
+                <div class="recipe-tags">
 
-                    </div>
+                    ${(recipe.tags || [])
+                        .map(tag => `
+                            <span class="recipe-tag">
+                                ${escapeHtml(tag)}
+                            </span>
+                        `)
+                        .join("")
+                    }
 
                 </div>
 
-            </button>
-
+            </div>
         `;
 
 
-        card
-            .querySelector(
-                ".recipe-card-button"
-            )
-            .addEventListener(
-                "click",
-                () => openRecipe(recipe)
-            );
-
-
         grid.appendChild(card);
-
     });
 
+
+    /*
+       Öffnen des Rezepts
+    */
+
+    grid.querySelectorAll("[data-open]")
+        .forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                const recipe = getRecipe(
+                    button.dataset.open
+                );
+
+                if (recipe) {
+                    openRecipe(recipe);
+                }
+
+            });
+
+        });
+
+
+    /*
+       + Button
+    */
+
+    grid.querySelectorAll("[data-add]")
+        .forEach(button => {
+
+            button.addEventListener("click", event => {
+
+                event.stopPropagation();
+
+                addToWeeklyPlan(
+                    button.dataset.add
+                );
+
+            });
+
+        });
 }
 
 
 /* =========================================
-   REZEPT-MODAL
-   ========================================= */
-
-function setupModal() {
-
-    document
-        .getElementById(
-            "close-recipe-modal"
-        )
-        .addEventListener(
-            "click",
-            closeRecipe
-        );
-
-
-    document
-        .querySelector(
-            "[data-close-modal]"
-        )
-        .addEventListener(
-            "click",
-            closeRecipe
-        );
-
-
-    document.addEventListener(
-        "keydown",
-        event => {
-
-            if (
-                event.key === "Escape"
-            ) {
-
-                closeRecipe();
-
-            }
-
-        }
-    );
-
-}
-
+   REZEPT ÖFFNEN
+========================================= */
 
 function openRecipe(recipe) {
 
-    const modal =
-        document.getElementById(
-            "recipe-modal"
-        );
+    currentRecipe = recipe;
+
+    currentRecipeServings =
+        recipe.servings || 1;
 
 
-    const body =
-        document.getElementById(
-            "recipe-modal-body"
-        );
+    renderRecipeModal();
 
 
-    const alreadyPlanned =
-        weeklyPlan.some(
-            item =>
-                item.recipeId === recipe.id
-        );
+    document
+        .getElementById("recipeModal")
+        .classList.add("open");
+
+    document.body.style.overflow = "hidden";
+}
 
 
-    body.innerHTML = `
+function renderRecipeModal() {
 
-        <p class="eyebrow">
-
-            ${recipe.tags
-                .map(tag =>
-                    escapeHtml(tag)
-                )
-                .join(" · ")}
-
-        </p>
+    if (!currentRecipe) {
+        return;
+    }
 
 
-        <h1 id="modal-recipe-title">
+    const recipe = currentRecipe;
 
-            ${escapeHtml(
-                recipe.title
-            )}
+    const scale =
+        currentRecipeServings /
+        (recipe.servings || 1);
 
-        </h1>
 
+    const ingredientsHtml =
+        (recipe.ingredients || [])
+            .map(ingredient => {
+
+                const amount =
+                    ingredient.amount * scale;
+
+
+                return `
+                    <li>
+
+                        <span class="ingredient-name">
+                            ${escapeHtml(ingredient.name)}
+                        </span>
+
+                        <span class="ingredient-value">
+                            ${formatAmount(amount)}
+                            ${escapeHtml(ingredient.unit || "")}
+                        </span>
+
+                    </li>
+                `;
+
+            })
+            .join("");
+
+
+    const stepsHtml =
+        (recipe.steps || [])
+            .map(step => `
+                <li>
+                    ${escapeHtml(step)}
+                </li>
+            `)
+            .join("");
+
+
+    document.getElementById("modalContent").innerHTML = `
 
         <img
-            src="rezepte/${recipe.image}"
-            alt="${escapeHtml(
-                recipe.title
-            )}"
-            class="recipe-modal-image"
+            src="${escapeHtml(recipe.image)}"
+            alt="${escapeHtml(recipe.title)}"
+            class="modal-recipe-image"
+            onerror="this.style.display='none'"
         >
 
 
-        <p class="recipe-intro">
+        <div class="modal-recipe-content">
 
-            ${escapeHtml(
-                recipe.description || ""
-            )}
+            <div class="recipe-tags">
 
-        </p>
+                ${(recipe.tags || [])
+                    .map(tag => `
+                        <span class="recipe-tag">
+                            ${escapeHtml(tag)}
+                        </span>
+                    `)
+                    .join("")
+                }
 
+            </div>
 
-        <div class="recipe-modal-grid">
 
+            <h1>
+                ${escapeHtml(recipe.title)}
+            </h1>
 
-            <section>
 
-                <h2>
-                    Zutaten
-                </h2>
+            <p class="modal-description">
+                ${escapeHtml(recipe.description || "")}
+            </p>
 
 
-                <ul class="ingredient-list">
+            <div class="recipe-serving-box">
 
-                    ${recipe.ingredients
-                        .map(
-                            ingredient => `
+                <span class="recipe-serving-label">
+                    Portionen
+                </span>
 
-                                <li>
 
-                                    <span>
-                                        ${escapeHtml(
-                                            ingredient.name
-                                        )}
-                                    </span>
-
-                                    <strong>
-
-                                        ${
-                                            ingredient.amount
-                                        }
-
-                                        ${
-                                            ingredient.unit
-                                        }
-
-                                    </strong>
-
-                                </li>
-
-                            `
-                        )
-                        .join("")}
-
-                </ul>
-
-            </section>
-
-
-            <section>
-
-                <h2>
-                    Zubereitung
-                </h2>
-
-
-                <ol class="steps">
-
-                    ${(recipe.steps || [])
-                        .map(
-                            step => `
-
-                                <li>
-                                    ${escapeHtml(
-                                        step
-                                    )}
-                                </li>
-
-                            `
-                        )
-                        .join("")}
-
-                </ol>
-
-            </section>
-
-        </div>
-
-
-        <button
-            id="add-recipe-to-plan"
-            class="button button-primary"
-            ${
-                alreadyPlanned
-                    ? "disabled"
-                    : ""
-            }
-        >
-
-            ${
-                alreadyPlanned
-                    ? "✓ Bereits im Wochenplan"
-                    : "Zum Wochenplan hinzufügen"
-            }
-
-        </button>
-
-    `;
-
-
-    const addButton =
-        document.getElementById(
-            "add-recipe-to-plan"
-        );
-
-
-    if (!alreadyPlanned) {
-
-        addButton.addEventListener(
-            "click",
-            () => {
-
-                addRecipeToPlan(recipe);
-
-                addButton.textContent =
-                    "✓ Zum Wochenplan hinzugefügt";
-
-                addButton.disabled =
-                    true;
-
-            }
-        );
-
-    }
-
-
-    modal.hidden = false;
-
-    modal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-}
-
-
-function closeRecipe() {
-
-    const modal =
-        document.getElementById(
-            "recipe-modal"
-        );
-
-
-    modal.hidden = true;
-
-    modal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-}
-
-
-/* =========================================
-   WOCHENPLAN
-   ========================================= */
-
-function addRecipeToPlan(recipe) {
-
-    const exists =
-        weeklyPlan.some(
-            item =>
-                item.recipeId === recipe.id
-        );
-
-
-    if (exists) {
-        return;
-    }
-
-
-    weeklyPlan.push({
-
-        recipeId:
-            recipe.id,
-
-        servings:
-            recipe.servings || 1
-
-    });
-
-
-    saveWeeklyPlan();
-
-    updatePlanCount();
-
-    renderWeeklyPlan();
-
-}
-
-
-function removeRecipeFromPlan(
-    recipeId
-) {
-
-    weeklyPlan =
-        weeklyPlan.filter(
-            item =>
-                item.recipeId !== recipeId
-        );
-
-
-    saveWeeklyPlan();
-
-    updatePlanCount();
-
-    renderWeeklyPlan();
-
-    renderShoppingList();
-
-}
-
-
-function changeServings(
-    recipeId,
-    amount
-) {
-
-    const item =
-        weeklyPlan.find(
-            planItem =>
-                planItem.recipeId === recipeId
-        );
-
-
-    if (!item) {
-        return;
-    }
-
-
-    item.servings =
-        Math.max(
-            1,
-            item.servings + amount
-        );
-
-
-    saveWeeklyPlan();
-
-    renderWeeklyPlan();
-
-    renderShoppingList();
-
-}
-
-
-/* =========================================
-   WOCHENPLAN DARSTELLEN
-   ========================================= */
-
-function renderWeeklyPlan() {
-
-    const container =
-        document.getElementById(
-            "weekly-plan"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "empty-plan"
-        );
-
-
-    container.innerHTML = "";
-
-
-    empty.hidden =
-        weeklyPlan.length !== 0;
-
-
-    weeklyPlan.forEach(item => {
-
-        const recipe =
-            recipes.find(
-                recipe =>
-                    recipe.id ===
-                    item.recipeId
-            );
-
-
-        if (!recipe) {
-            return;
-        }
-
-
-        const element =
-            document.createElement(
-                "article"
-            );
-
-
-        element.className =
-            "plan-item";
-
-
-        element.innerHTML = `
-
-            <img
-                src="rezepte/${recipe.image}"
-                alt="${escapeHtml(
-                    recipe.title
-                )}"
-                class="plan-image"
-            >
-
-
-            <div>
-
-                <h3 class="plan-title">
-
-                    ${escapeHtml(
-                        recipe.title
-                    )}
-
-                </h3>
-
-
-                <div class="portion-control">
+                <div class="recipe-serving-control">
 
                     <button
-                        class="portion-button"
-                        data-action="minus"
+                        type="button"
+                        id="recipeServingMinus"
+                        aria-label="Portionen verringern"
                     >
                         −
                     </button>
 
 
                     <span
-                        class="portion-value"
+                        class="recipe-serving-number"
+                        id="recipeServingNumber"
                     >
-                        ${item.servings}
-                        ${
-                            item.servings === 1
-                                ? "Portion"
-                                : "Portionen"
-                        }
+                        ${currentRecipeServings}
                     </span>
 
 
                     <button
-                        class="portion-button"
-                        data-action="plus"
+                        type="button"
+                        id="recipeServingPlus"
+                        aria-label="Portionen erhöhen"
                     >
                         +
                     </button>
@@ -941,142 +652,262 @@ function renderWeeklyPlan() {
             </div>
 
 
+            <div class="recipe-section">
+
+                <h2>Zutaten</h2>
+
+                <ul class="ingredient-list">
+                    ${ingredientsHtml}
+                </ul>
+
+            </div>
+
+
+            <div class="recipe-section">
+
+                <h2>Zubereitung</h2>
+
+                <ol class="recipe-steps">
+                    ${stepsHtml}
+                </ol>
+
+            </div>
+
+
             <button
-                class="remove-plan-item"
-                aria-label="Gericht entfernen"
+                type="button"
+                class="modal-plan-button"
+                id="modalAddToPlan"
             >
-                ×
+                Zum Wochenplan hinzufügen
             </button>
 
-        `;
+        </div>
+    `;
 
 
-        element
-            .querySelector(
-                '[data-action="minus"]'
-            )
-            .addEventListener(
-                "click",
-                () => changeServings(
-                    recipe.id,
-                    -1
-                )
+    document
+        .getElementById("recipeServingMinus")
+        .addEventListener("click", () => {
+
+            if (currentRecipeServings > 1) {
+
+                currentRecipeServings--;
+
+                renderRecipeModal();
+            }
+
+        });
+
+
+    document
+        .getElementById("recipeServingPlus")
+        .addEventListener("click", () => {
+
+            currentRecipeServings++;
+
+            renderRecipeModal();
+        });
+
+
+    document
+        .getElementById("modalAddToPlan")
+        .addEventListener("click", () => {
+
+            addToWeeklyPlan(
+                recipe.id,
+                currentRecipeServings
             );
 
-
-        element
-            .querySelector(
-                '[data-action="plus"]'
-            )
-            .addEventListener(
-                "click",
-                () => changeServings(
-                    recipe.id,
-                    1
-                )
-            );
-
-
-        element
-            .querySelector(
-                ".remove-plan-item"
-            )
-            .addEventListener(
-                "click",
-                () => removeRecipeFromPlan(
-                    recipe.id
-                )
-            );
-
-
-        container.appendChild(element);
-
-    });
-
-
-    updatePlanCount();
-
+        });
 }
 
 
 /* =========================================
-   WOCHENPLAN SPEICHERN
-   ========================================= */
+   MODAL
+========================================= */
 
-function saveWeeklyPlan() {
+function setupModal() {
 
-    localStorage.setItem(
-        "kochbuch-weekly-plan",
-        JSON.stringify(
-            weeklyPlan
-        )
+    document
+        .getElementById("modalClose")
+        .addEventListener("click", closeRecipe);
+
+
+    document
+        .getElementById("recipeModal")
+        .addEventListener("click", event => {
+
+            if (
+                event.target.id === "recipeModal"
+            ) {
+                closeRecipe();
+            }
+
+        });
+
+
+    document.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Escape" &&
+                document
+                    .getElementById("recipeModal")
+                    .classList.contains("open")
+            ) {
+                closeRecipe();
+            }
+
+        }
     );
-
 }
 
 
-function loadWeeklyPlan() {
+function closeRecipe() {
 
-    const saved =
-        localStorage.getItem(
-            "kochbuch-weekly-plan"
-        );
+    document
+        .getElementById("recipeModal")
+        .classList.remove("open");
+
+    document.body.style.overflow = "";
+
+    currentRecipe = null;
+}
 
 
-    if (!saved) {
+/* =========================================
+   WOCHENPLAN
+========================================= */
+
+function addToWeeklyPlan(recipeId, servings = null) {
+
+    const recipe = getRecipe(recipeId);
+
+    if (!recipe) {
         return;
     }
 
 
-    try {
+    const existing = weeklyPlan.find(
+        item => item.recipeId === recipeId
+    );
 
-        weeklyPlan =
-            JSON.parse(saved);
 
+    if (existing) {
 
-    } catch (error) {
+        /*
+           Ist das Rezept schon im Plan,
+           erhöhen wir die Portionen um die
+           Grund-Portionszahl.
 
-        console.error(
-            "Wochenplan konnte nicht geladen werden.",
-            error
-        );
+           Beispiel:
+           Rezept = 2 Portionen
+           bereits 2 im Plan
+           + klicken
+           => 4 Portionen
+        */
 
-        weeklyPlan = [];
+        existing.servings +=
+            servings || recipe.servings || 1;
+
+    } else {
+
+        weeklyPlan.push({
+
+            recipeId: recipe.id,
+
+            servings:
+                servings ||
+                recipe.servings ||
+                1
+
+        });
 
     }
 
+
+    saveWeeklyPlan();
+
+    renderWeeklyPlan();
+    renderShoppingList();
+
+    updateWeeklyCount();
+    renderRecipes();
 }
 
 
-function updatePlanCount() {
+function removeFromWeeklyPlan(recipeId) {
 
-    document
-        .getElementById("plan-count")
-        .textContent =
-            weeklyPlan.length;
+    weeklyPlan = weeklyPlan.filter(
+        item => item.recipeId !== recipeId
+    );
 
+
+    saveWeeklyPlan();
+
+    renderWeeklyPlan();
+    renderShoppingList();
+
+    updateWeeklyCount();
+    renderRecipes();
 }
 
 
-/* =========================================
-   EINKAUFSLISTE
-   ========================================= */
+function changeWeeklyServings(recipeId, change) {
 
-function generateShoppingList() {
+    const item = weeklyPlan.find(
+        item => item.recipeId === recipeId
+    );
 
-    const summed = {};
+    if (!item) {
+        return;
+    }
 
-    const unsummed = [];
+
+    item.servings += change;
 
 
-    weeklyPlan.forEach(planItem => {
+    if (item.servings < 1) {
+        item.servings = 1;
+    }
+
+
+    saveWeeklyPlan();
+
+    renderWeeklyPlan();
+    renderShoppingList();
+}
+
+
+function renderWeeklyPlan() {
+
+    const container =
+        document.getElementById("weeklyPlanList");
+
+    const empty =
+        document.getElementById("weeklyEmpty");
+
+
+    container.innerHTML = "";
+
+
+    if (weeklyPlan.length === 0) {
+
+        empty.classList.add("visible");
+
+        return;
+    }
+
+
+    empty.classList.remove("visible");
+
+
+    weeklyPlan.forEach(item => {
 
         const recipe =
-            recipes.find(
-                item =>
-                    item.id ===
-                    planItem.recipeId
-            );
+            getRecipe(item.recipeId);
 
 
         if (!recipe) {
@@ -1084,44 +915,209 @@ function generateShoppingList() {
         }
 
 
-        const originalServings =
+        const element =
+            document.createElement("article");
+
+        element.className = "weekly-item";
+
+
+        element.innerHTML = `
+
+            <div class="weekly-item-main">
+
+                <img
+                    src="${escapeHtml(recipe.image)}"
+                    alt=""
+                    class="weekly-item-image"
+                    onerror="this.style.display='none'"
+                >
+
+                <div>
+
+                    <h2 class="weekly-item-title">
+                        ${escapeHtml(recipe.title)}
+                    </h2>
+
+                    <div class="weekly-item-meta">
+                        Portionen
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="serving-control">
+
+                <button
+                    class="serving-button"
+                    data-minus="${escapeHtml(recipe.id)}"
+                >
+                    −
+                </button>
+
+                <span class="serving-number">
+                    ${item.servings}
+                </span>
+
+                <button
+                    class="serving-button"
+                    data-plus="${escapeHtml(recipe.id)}"
+                >
+                    +
+                </button>
+
+                <button
+                    class="remove-button"
+                    data-remove="${escapeHtml(recipe.id)}"
+                    aria-label="Rezept entfernen"
+                    title="Aus Wochenplan entfernen"
+                >
+                    ×
+                </button>
+
+            </div>
+        `;
+
+
+        container.appendChild(element);
+    });
+
+
+    container
+        .querySelectorAll("[data-minus]")
+        .forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                changeWeeklyServings(
+                    button.dataset.minus,
+                    -1
+                );
+
+            });
+
+        });
+
+
+    container
+        .querySelectorAll("[data-plus]")
+        .forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                changeWeeklyServings(
+                    button.dataset.plus,
+                    1
+                );
+
+            });
+
+        });
+
+
+    container
+        .querySelectorAll("[data-remove]")
+        .forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                removeFromWeeklyPlan(
+                    button.dataset.remove
+                );
+
+            });
+
+        });
+}
+
+
+/* =========================================
+   EINKAUFSLISTE
+========================================= */
+
+function renderShoppingList() {
+
+    const container =
+        document.getElementById("shoppingList");
+
+    const empty =
+        document.getElementById("shoppingEmpty");
+
+
+    container.innerHTML = "";
+
+
+    if (weeklyPlan.length === 0) {
+
+        empty.classList.add("visible");
+
+        return;
+    }
+
+
+    empty.classList.remove("visible");
+
+
+    const summableUnits =
+        config.summableUnits || [];
+
+
+    const grouped = {};
+    const unsummable = [];
+
+
+    weeklyPlan.forEach(planItem => {
+
+        const recipe =
+            getRecipe(planItem.recipeId);
+
+
+        if (!recipe) {
+            return;
+        }
+
+
+        const recipeBaseServings =
             recipe.servings || 1;
 
 
-        const multiplier =
+        const scale =
             planItem.servings /
-            originalServings;
+            recipeBaseServings;
 
 
-        recipe.ingredients.forEach(
-            ingredient => {
+        (recipe.ingredients || [])
+            .forEach(ingredient => {
+
+                const amount =
+                    ingredient.amount * scale;
+
 
                 const unit =
-                    ingredient.unit;
+                    ingredient.unit || "";
 
 
                 /*
-                 * Summierbare Einheiten
-                 */
+                   Nur Einheiten aus app.json
+                   werden zusammengezählt.
+                */
 
-                if (
-                    isSummableUnit(unit)
-                ) {
+                if (summableUnits.includes(unit)) {
 
                     const key =
-                        `${ingredient.name}|${unit}`;
+                        `${ingredient.name}|||${unit}`;
 
 
-                    if (!summed[key]) {
+                    if (!grouped[key]) {
 
-                        summed[key] = {
+                        grouped[key] = {
 
-                            name:
-                                ingredient.name,
+                            name: ingredient.name,
 
                             amount: 0,
 
-                            unit,
+                            unit: unit,
 
                             category:
                                 ingredient.category ||
@@ -1132,379 +1128,239 @@ function generateShoppingList() {
                     }
 
 
-                    summed[key].amount +=
-                        ingredient.amount *
-                        multiplier;
+                    grouped[key].amount += amount;
 
-                }
+                } else {
 
+                    /*
+                       Nicht summierbare Mengen
+                       bleiben einzeln.
+                    */
 
-                /*
-                 * Nicht summierbare Einheiten
-                 */
+                    unsummable.push({
 
-                else {
+                        name: ingredient.name,
 
-                    unsummed.push({
+                        amount: amount,
 
-                        name:
-                            ingredient.name,
-
-                        amount:
-                            ingredient.amount *
-                            multiplier,
-
-                        unit,
+                        unit: unit,
 
                         category:
                             ingredient.category ||
-                            "Sonstiges"
+                            "Sonstiges",
+
+                        recipe:
+                            recipe.title
 
                     });
 
                 }
 
-            }
-        );
+            });
 
     });
 
 
-    return [
-        ...Object.values(summed),
-        ...unsummed
-    ];
-
-}
-
-
-/* =========================================
-   SUMMIERBARE EINHEITEN
-   ========================================= */
-
-function isSummableUnit(unit) {
-
-    const units = [
-
-        "g",
-        "kg",
-
-        "ml",
-        "l",
-
-        "EL",
-        "TL",
-
-        "Stück"
-
-    ];
-
-
-    return units.includes(unit);
-
-}
-
-
-/* =========================================
-   EINKAUFSLISTE RENDERN
-   ========================================= */
-
-function renderShoppingList() {
-
-    const container =
-        document.getElementById(
-            "shopping-list"
-        );
-
-
-    const ingredients =
-        generateShoppingList();
-
-
-    container.innerHTML = "";
-
-
-    if (
-        ingredients.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-state">
-
-                <p>
-                    Dein Wochenplan ist noch leer.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    /*
-     * Nach Kategorie gruppieren
-     */
-
     const categories = {};
 
 
-    ingredients.forEach(
-        ingredient => {
+    Object.values(grouped).forEach(item => {
 
-            const category =
-                ingredient.category ||
-                "Sonstiges";
-
-
-            if (!categories[category]) {
-
-                categories[category] = [];
-
-            }
-
-
-            categories[category]
-                .push(ingredient);
-
+        if (!categories[item.category]) {
+            categories[item.category] = [];
         }
-    );
+
+        categories[item.category].push(item);
+    });
 
 
-    Object.entries(categories)
-        .forEach(
-            ([category, items]) => {
+    unsummable.forEach(item => {
 
-                const section =
-                    document.createElement(
-                        "section"
-                    );
+        if (!categories[item.category]) {
+            categories[item.category] = [];
+        }
 
-
-                section.className =
-                    "shopping-category";
+        categories[item.category].push(item);
+    });
 
 
-                section.innerHTML = `
+    Object.keys(categories)
+        .sort()
+        .forEach(category => {
 
-                    <h2>
-                        ${escapeHtml(
-                            category
-                        )}
-                    </h2>
+            const section =
+                document.createElement("section");
 
-                `;
-
-
-                items.forEach(
-                    (ingredient, index) => {
-
-                        const label =
-                            document.createElement(
-                                "label"
-                            );
+            section.className =
+                "shopping-category";
 
 
-                        label.className =
-                            "shopping-item";
+            const items =
+                categories[category];
 
 
-                        const amount =
-                            formatAmount(
-                                ingredient.amount
-                            );
+            section.innerHTML = `
 
+                <h2 class="shopping-category-title">
+                    ${escapeHtml(category)}
+                </h2>
 
-                        label.innerHTML = `
+                <ul class="shopping-items">
 
-                            <input
-                                type="checkbox"
-                                data-shopping-item
-                            >
+                    ${items.map(item => `
 
+                        <li class="shopping-item">
 
-                            <span>
+                            <label>
 
-                                ${escapeHtml(
-                                    ingredient.name
-                                )}
+                                <input
+                                    type="checkbox"
+                                    class="shopping-checkbox"
+                                >
 
+                                <span class="ingredient-name">
+                                    ${escapeHtml(item.name)}
+                                </span>
+
+                            </label>
+
+                            <span class="ingredient-amount">
+                                ${formatAmount(item.amount)}
+                                ${escapeHtml(item.unit)}
+                                ${
+                                    item.recipe
+                                        ? ` · ${escapeHtml(item.recipe)}`
+                                        : ""
+                                }
                             </span>
 
+                        </li>
 
-                            <span
-                                class="shopping-amount"
-                            >
+                    `).join("")}
 
-                                ${amount}
-                                ${escapeHtml(
-                                    ingredient.unit
-                                )}
-
-                            </span>
-
-                        `;
+                </ul>
+            `;
 
 
-                        const checkbox =
-                            label.querySelector(
-                                "input"
-                            );
+            container.appendChild(section);
+        });
 
 
-                        checkbox.addEventListener(
-                            "change",
-                            () => {
+    setupShoppingCheckboxes();
+}
 
-                                label.classList.toggle(
-                                    "checked",
-                                    checkbox.checked
-                                );
 
-                            }
+function setupShoppingCheckboxes() {
+
+    document
+        .querySelectorAll(".shopping-checkbox")
+        .forEach(checkbox => {
+
+            checkbox.addEventListener(
+                "change",
+                () => {
+
+                    checkbox
+                        .closest(".shopping-item")
+                        .classList.toggle(
+                            "checked",
+                            checkbox.checked
                         );
 
+                }
+            );
 
-                        section.appendChild(
-                            label
-                        );
-
-                    }
-                );
-
-
-                container.appendChild(
-                    section
-                );
-
-            }
-        );
-
+        });
 }
 
 
 /* =========================================
-   EINKAUFSLISTE ZURÜCKSETZEN
-   ========================================= */
+   AKTIONEN
+========================================= */
 
-function setupClearButtons() {
+function setupActions() {
 
     document
-        .getElementById(
-            "clear-plan"
-        )
-        .addEventListener(
-            "click",
-            () => {
+        .getElementById("clearWeeklyPlan")
+        .addEventListener("click", () => {
 
-                if (
-                    weeklyPlan.length === 0
-                ) {
-                    return;
-                }
-
-
-                weeklyPlan = [];
-
-                saveWeeklyPlan();
-
-                renderWeeklyPlan();
-
-                renderShoppingList();
-
+            if (weeklyPlan.length === 0) {
+                return;
             }
-        );
+
+
+            weeklyPlan = [];
+
+            saveWeeklyPlan();
+
+            renderWeeklyPlan();
+            renderShoppingList();
+
+            updateWeeklyCount();
+            renderRecipes();
+
+        });
 
 
     document
-        .getElementById(
-            "clear-shopping-list"
-        )
-        .addEventListener(
-            "click",
-            () => {
+        .getElementById("resetShopping")
+        .addEventListener("click", () => {
 
-                document
-                    .querySelectorAll(
-                        "[data-shopping-item]"
-                    )
-                    .forEach(
-                        checkbox => {
+            document
+                .querySelectorAll(".shopping-checkbox")
+                .forEach(checkbox => {
 
-                            checkbox.checked =
-                                false;
+                    checkbox.checked = false;
 
+                    checkbox
+                        .closest(".shopping-item")
+                        .classList.remove("checked");
 
-                            checkbox
-                                .closest(
-                                    ".shopping-item"
-                                )
-                                .classList
-                                .remove(
-                                    "checked"
-                                );
+                });
 
-                        }
-                    );
-
-            }
-        );
-
+        });
 }
 
 
 /* =========================================
    HILFSFUNKTIONEN
-   ========================================= */
+========================================= */
+
+function getRecipe(recipeId) {
+
+    return recipes.find(
+        recipe => recipe.id === recipeId
+    );
+}
+
+
+function updateWeeklyCount() {
+
+    document
+        .getElementById("weeklyCount")
+        .textContent = weeklyPlan.length;
+}
+
 
 function formatAmount(amount) {
 
-    if (
-        Number.isInteger(amount)
-    ) {
-
+    if (Number.isInteger(amount)) {
         return amount;
-
     }
 
 
-    return Number(
-        amount.toFixed(2)
-    );
-
+    return Number(amount.toFixed(2))
+        .toString()
+        .replace(".", ",");
 }
 
 
 function escapeHtml(value) {
 
-    return String(value)
-
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
