@@ -152,7 +152,10 @@ function renderRecipes() {
 
   grid.innerHTML = filtered.map(recipe => `
     <article class="recipe-card" data-id="${escapeHtml(recipe.id)}">
-      <button class="add-recipe-button" data-add="${escapeHtml(recipe.id)}" aria-label="Zum Wochenplan hinzufügen">+</button>
+      <button class="add-recipe-button" data-add="${escapeHtml(recipe.id)}"
+  aria-label="Zum Wochenplan hinzufügen">
+  ${weeklyPlan.some(item => item.recipeId === recipe.id) ? "✓" : "+"}
+</button>
       <div class="recipe-card-image" data-open="${escapeHtml(recipe.id)}">
         <img src="${escapeHtml(getRecipeImage(recipe))}" alt="${escapeHtml(recipe.title || "")}">
       </div>
@@ -174,6 +177,7 @@ function renderRecipes() {
     button.addEventListener("click", event => {
       event.stopPropagation();
       addToWeeklyPlan(button.dataset.add);
+      rederRecipes();
     });
   });
 }
