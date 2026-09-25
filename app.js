@@ -199,7 +199,7 @@ function renderRecipeModal() {
   const scale = currentRecipeServings / (recipe.servings || 1);
 
   document.getElementById("modal-content").innerHTML = `
-    <img class="modal-image" src="${escapeHtml(recipe.image || "")}" alt="${escapeHtml(recipe.title || "")}">
+    <img class="modal-image" src="${escapeHtml(getRecipeImage(recipe))}" alt="${escapeHtml(recipe.title || "")}">
     <div class="modal-body">
       <div class="recipe-tags">
         ${(recipe.tags || []).map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}
