@@ -154,7 +154,7 @@ function renderRecipes() {
     <article class="recipe-card" data-id="${escapeHtml(recipe.id)}">
       <button class="add-recipe-button" data-add="${escapeHtml(recipe.id)}" aria-label="Zum Wochenplan hinzufügen">+</button>
       <div class="recipe-card-image" data-open="${escapeHtml(recipe.id)}">
-        <img src="${escapeHtml(recipe.image || "")}" alt="${escapeHtml(recipe.title || "")}">
+        <img src="${escapeHtml(getRecipeImage(recipe))}" alt="${escapeHtml(recipe.title || "")}">
       </div>
       <div class="recipe-card-content" data-open="${escapeHtml(recipe.id)}">
         <h2>${escapeHtml(recipe.title || "")}</h2>
