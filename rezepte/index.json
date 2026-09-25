@@ -1,179 +1,39 @@
 {
     "recipes": [
-
         {
             "id": "pasta-pesto",
-
+            "path": "pasta-pesto/index.json",
             "title": "Pasta mit Pesto",
-
             "description": "Schnelle Pasta mit cremigem Pesto.",
-
             "image": "pasta-pesto/bild.jpg",
-
             "tags": [
                 "Hauptgericht",
                 "schnell"
-            ],
-
-            "servings": 2,
-
-            "ingredients": [
-
-                {
-                    "name": "Pasta",
-                    "amount": 250,
-                    "unit": "g",
-                    "category": "Trockenvorrat"
-                },
-
-                {
-                    "name": "Pesto",
-                    "amount": 120,
-                    "unit": "g",
-                    "category": "Trockenvorrat"
-                },
-
-                {
-                    "name": "Parmesan",
-                    "amount": 40,
-                    "unit": "g",
-                    "category": "Milchprodukte"
-                }
-
-            ],
-
-            "steps": [
-
-                "Pasta in Salzwasser kochen.",
-
-                "Pesto mit etwas Nudelwasser verrühren.",
-
-                "Pasta abgießen und mit dem Pesto vermengen.",
-
-                "Mit Parmesan servieren."
-
             ]
-
         },
-
-
         {
             "id": "overnight-oats",
-
+            "path": "overnight-oats/index.json",
             "title": "Overnight Oats",
-
-            "description": "Einfaches Frühstück zum Vorbereiten.",
-
+            "description": "Ein einfaches Frühstück, das sich wunderbar vorbereiten lässt.",
             "image": "overnight-oats/bild.jpg",
-
             "tags": [
                 "MealPrep",
                 "Vegan",
                 "schnell"
-            ],
-
-            "servings": 2,
-
-            "ingredients": [
-
-                {
-                    "name": "Haferflocken",
-                    "amount": 100,
-                    "unit": "g",
-                    "category": "Trockenvorrat"
-                },
-
-                {
-                    "name": "Hafermilch",
-                    "amount": 250,
-                    "unit": "ml",
-                    "category": "Getränke"
-                },
-
-                {
-                    "name": "Banane",
-                    "amount": 2,
-                    "unit": "Stück",
-                    "category": "Obst"
-                }
-
-            ],
-
-            "steps": [
-
-                "Haferflocken und Hafermilch vermischen.",
-
-                "Über Nacht im Kühlschrank quellen lassen.",
-
-                "Am nächsten Morgen mit Banane servieren."
-
             ]
-
         },
-
-
         {
             "id": "gemuese-curry",
-
-            "title": "Gemüsecurry",
-
-            "description": "Cremiges und aromatisches Curry mit Gemüse.",
-
+            "path": "gemuese-curry/index.json",
+            "title": "Gemüse-Curry",
+            "description": "Cremiges Curry mit viel Gemüse.",
             "image": "gemuese-curry/bild.jpg",
-
             "tags": [
                 "Hauptgericht",
-                "MealPrep",
-                "Vegan"
-            ],
-
-            "servings": 4,
-
-            "ingredients": [
-
-                {
-                    "name": "Kokosmilch",
-                    "amount": 400,
-                    "unit": "ml",
-                    "category": "Konserven"
-                },
-
-                {
-                    "name": "Paprika",
-                    "amount": 2,
-                    "unit": "Stück",
-                    "category": "Gemüse"
-                },
-
-                {
-                    "name": "Zucchini",
-                    "amount": 2,
-                    "unit": "Stück",
-                    "category": "Gemüse"
-                },
-
-                {
-                    "name": "Kichererbsen",
-                    "amount": 400,
-                    "unit": "g",
-                    "category": "Konserven"
-                }
-
-            ],
-
-            "steps": [
-
-                "Gemüse klein schneiden.",
-
-                "Gemüse in etwas Öl anbraten.",
-
-                "Kokosmilch und Kichererbsen dazugeben.",
-
-                "Etwa 15 Minuten köcheln lassen."
-
+                "Vegan",
+                "MealPrep"
             ]
-
         }
-
     ]
 }
