@@ -1,0 +1,39 @@
+{
+  "recipes": [
+    {
+      "id": "pasta-pesto",
+      "path": "pasta-pesto/index.json",
+      "title": "Pasta mit Pesto",
+      "description": "Schnelle Pasta mit cremigem Pesto.",
+      "image": "pasta-pesto/bild.jpg",
+      "tags": [
+        "Hauptgericht",
+        "schnell"
+      ]
+    },
+    {
+      "id": "overnight-oats",
+      "path": "overnight-oats/index.json",
+      "title": "Overnight Oats",
+      "description": "Ein einfaches Frühstück, das sich wunderbar vorbereiten lässt.",
+      "image": "overnight-oats/bild.jpg",
+      "tags": [
+        "MealPrep",
+        "Vegan",
+        "schnell"
+      ]
+    },
+    {
+      "id": "gemuese-curry",
+      "path": "gemuese-curry/index.json",
+      "title": "Gemüse-Curry",
+      "description": "Cremiges Curry mit viel Gemüse.",
+      "image": "gemuese-curry/bild.jpg",
+      "tags": [
+        "Hauptgericht",
+        "Vegan",
+        "MealPrep"
+      ]
+    }
+  ]
+}
