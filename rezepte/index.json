@@ -1,5 +1,112 @@
-[
-  {
-    "file": "rezepte/spaghetti-aglio-olio/rezept.json"
-  }
-]
+
+{
+    "recipes": [
+
+        {
+            "id": "pasta-pesto",
+            "title": "Pasta mit Pesto",
+            "description": "Schnelle Pasta mit cremigem Pesto.",
+            "path": "pasta-pesto/index.html",
+            "image": "pasta-pesto/bild.jpg",
+
+            "tags": [
+                "Hauptgericht",
+                "schnell",
+                "Vegetarisch"
+            ],
+
+            "servings": 2,
+
+            "ingredients": [
+                {
+                    "name": "Pasta",
+                    "amount": 250,
+                    "unit": "g"
+                },
+                {
+                    "name": "Pesto",
+                    "amount": 120,
+                    "unit": "g"
+                },
+                {
+                    "name": "Parmesan",
+                    "amount": 40,
+                    "unit": "g"
+                }
+            ]
+        },
+
+
+        {
+            "id": "overnight-oats",
+            "title": "Overnight Oats",
+            "description": "Einfaches Frühstück zum Vorbereiten.",
+            "path": "overnight-oats/index.html",
+            "image": "overnight-oats/bild.jpg",
+
+            "tags": [
+                "MealPrep",
+                "Vegan"
+            ],
+
+            "servings": 2,
+
+            "ingredients": [
+                {
+                    "name": "Haferflocken",
+                    "amount": 100,
+                    "unit": "g"
+                },
+                {
+                    "name": "Hafermilch",
+                    "amount": 250,
+                    "unit": "ml"
+                },
+                {
+                    "name": "Banane",
+                    "amount": 2,
+                    "unit": "Stück"
+                }
+            ]
+        },
+
+
+        {
+            "id": "schokokuchen",
+            "title": "Schokoladenkuchen",
+            "description": "Saftiger Schokoladenkuchen.",
+            "path": "schokokuchen/index.html",
+            "image": "schokokuchen/bild.jpg",
+
+            "tags": [
+                "Dessert"
+            ],
+
+            "servings": 8,
+
+            "ingredients": [
+                {
+                    "name": "Mehl",
+                    "amount": 200,
+                    "unit": "g"
+                },
+                {
+                    "name": "Zucker",
+                    "amount": 150,
+                    "unit": "g"
+                },
+                {
+                    "name": "Butter",
+                    "amount": 125,
+                    "unit": "g"
+                },
+                {
+                    "name": "Schokolade",
+                    "amount": 200,
+                    "unit": "g"
+                }
+            ]
+        }
+
+    ]
+}
