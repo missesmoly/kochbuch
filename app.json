@@ -9,7 +9,14 @@
     "MealPrep",
     "Vegan",
     "schnell",
-    "Dessert"
+    "Dessert",
+    "Salat",
+    "Suppe",
+    "Curry",
+    "Grillen",
+    "FingerFood",
+    "Drinks",
+    "Backen"
   ],
   "summableUnits": [
     "g",
