@@ -7,6 +7,10 @@ let currentRecipeServings = 1;
 
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
+function getRecipeImage(recipe) {
+  return `rezepte/${recipe.id}/${recipe.image || "bild.jpg"}`;
+}
+
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
