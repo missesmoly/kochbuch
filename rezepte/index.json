@@ -1,111 +1,178 @@
-
 {
     "recipes": [
 
         {
             "id": "pasta-pesto",
+
             "title": "Pasta mit Pesto",
+
             "description": "Schnelle Pasta mit cremigem Pesto.",
-            "path": "pasta-pesto/index.html",
+
             "image": "pasta-pesto/bild.jpg",
 
             "tags": [
                 "Hauptgericht",
-                "schnell",
-                "Vegetarisch"
+                "schnell"
             ],
 
             "servings": 2,
 
             "ingredients": [
+
                 {
                     "name": "Pasta",
                     "amount": 250,
-                    "unit": "g"
+                    "unit": "g",
+                    "category": "Trockenvorrat"
                 },
+
                 {
                     "name": "Pesto",
                     "amount": 120,
-                    "unit": "g"
+                    "unit": "g",
+                    "category": "Trockenvorrat"
                 },
+
                 {
                     "name": "Parmesan",
                     "amount": 40,
-                    "unit": "g"
+                    "unit": "g",
+                    "category": "Milchprodukte"
                 }
+
+            ],
+
+            "steps": [
+
+                "Pasta in Salzwasser kochen.",
+
+                "Pesto mit etwas Nudelwasser verrühren.",
+
+                "Pasta abgießen und mit dem Pesto vermengen.",
+
+                "Mit Parmesan servieren."
+
             ]
+
         },
 
 
         {
             "id": "overnight-oats",
+
             "title": "Overnight Oats",
+
             "description": "Einfaches Frühstück zum Vorbereiten.",
-            "path": "overnight-oats/index.html",
+
             "image": "overnight-oats/bild.jpg",
 
             "tags": [
                 "MealPrep",
-                "Vegan"
+                "Vegan",
+                "schnell"
             ],
 
             "servings": 2,
 
             "ingredients": [
+
                 {
                     "name": "Haferflocken",
                     "amount": 100,
-                    "unit": "g"
+                    "unit": "g",
+                    "category": "Trockenvorrat"
                 },
+
                 {
                     "name": "Hafermilch",
                     "amount": 250,
-                    "unit": "ml"
+                    "unit": "ml",
+                    "category": "Getränke"
                 },
+
                 {
                     "name": "Banane",
                     "amount": 2,
-                    "unit": "Stück"
+                    "unit": "Stück",
+                    "category": "Obst"
                 }
+
+            ],
+
+            "steps": [
+
+                "Haferflocken und Hafermilch vermischen.",
+
+                "Über Nacht im Kühlschrank quellen lassen.",
+
+                "Am nächsten Morgen mit Banane servieren."
+
             ]
+
         },
 
 
         {
-            "id": "schokokuchen",
-            "title": "Schokoladenkuchen",
-            "description": "Saftiger Schokoladenkuchen.",
-            "path": "schokokuchen/index.html",
-            "image": "schokokuchen/bild.jpg",
+            "id": "gemuese-curry",
+
+            "title": "Gemüsecurry",
+
+            "description": "Cremiges und aromatisches Curry mit Gemüse.",
+
+            "image": "gemuese-curry/bild.jpg",
 
             "tags": [
-                "Dessert"
+                "Hauptgericht",
+                "MealPrep",
+                "Vegan"
             ],
 
-            "servings": 8,
+            "servings": 4,
 
             "ingredients": [
+
                 {
-                    "name": "Mehl",
-                    "amount": 200,
-                    "unit": "g"
+                    "name": "Kokosmilch",
+                    "amount": 400,
+                    "unit": "ml",
+                    "category": "Konserven"
                 },
+
                 {
-                    "name": "Zucker",
-                    "amount": 150,
-                    "unit": "g"
+                    "name": "Paprika",
+                    "amount": 2,
+                    "unit": "Stück",
+                    "category": "Gemüse"
                 },
+
                 {
-                    "name": "Butter",
-                    "amount": 125,
-                    "unit": "g"
+                    "name": "Zucchini",
+                    "amount": 2,
+                    "unit": "Stück",
+                    "category": "Gemüse"
                 },
+
                 {
-                    "name": "Schokolade",
-                    "amount": 200,
-                    "unit": "g"
+                    "name": "Kichererbsen",
+                    "amount": 400,
+                    "unit": "g",
+                    "category": "Konserven"
                 }
+
+            ],
+
+            "steps": [
+
+                "Gemüse klein schneiden.",
+
+                "Gemüse in etwas Öl anbraten.",
+
+                "Kokosmilch und Kichererbsen dazugeben.",
+
+                "Etwa 15 Minuten köcheln lassen."
+
             ]
+
         }
 
     ]
