@@ -1,333 +1,134 @@
-const recipeList = document.getElementById("recipe-list");
-const searchInput = document.getElementById("search");
-const tagsContainer = document.getElementById("tags");
-
-const modal = document.getElementById("recipe-modal");
-const modalContent = document.getElementById("recipe-detail");
-const closeModal = document.getElementById("close-modal");
-
 let recipes = [];
-let activeTag = null;
+
+let activeTag = "Alle";
+
+let weeklyPlan = {
+    Montag: null,
+    Dienstag: null,
+    Mittwoch: null,
+    Donnerstag: null,
+    Freitag: null,
+    Samstag: null,
+    Sonntag: null
+};
 
 
 /*
- * Ermittelt den Pfad relativ zur GitHub-Pages-Seite.
- */
-function getBasePath() {
-    return window.location.pathname
-        .replace(/\/[^/]*$/, "/");
-}
+|--------------------------------------------------------------------------
+| INITIALISIERUNG
+|--------------------------------------------------------------------------
+*/
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    await loadRecipes();
+
+    loadWeeklyPlan();
+
+    setupSearch();
+
+    setupTagFilter();
+
+    setupWeekPlan();
+
+    setupClearButtons();
+
+    renderRecipes();
+
+    renderWeeklyPlan();
+
+    renderShoppingList();
+
+});
 
 
 /*
- * URL für Dateien erzeugen.
- */
-function fileUrl(path) {
+|--------------------------------------------------------------------------
+| REZEPTE LADEN
+|--------------------------------------------------------------------------
+*/
 
-    return new URL(
-        path,
-        window.location.origin + getBasePath()
-    ).href;
-}
-
-
-/*
- * Alle Rezepte laden
- */
 async function loadRecipes() {
 
     try {
 
-        const indexUrl = fileUrl("rezepte/index.json");
-
-        console.log("Lade Rezeptindex:", indexUrl);
-
-        const response = await fetch(indexUrl);
+        const response = await fetch("rezepte/index.json");
 
         if (!response.ok) {
-            throw new Error(
-                `index.json konnte nicht geladen werden (${response.status})`
-            );
+            throw new Error("Rezeptindex konnte nicht geladen werden.");
         }
 
-        const index = await response.json();
+        const data = await response.json();
 
+        recipes = data.recipes || [];
 
-        const loadedRecipes = await Promise.all(
-
-            index.map(async item => {
-
-                try {
-
-                    const recipeUrl = fileUrl(item.file);
-
-                    console.log(
-                        "Lade Rezept:",
-                        recipeUrl
-                    );
-
-
-                    const response =
-                        await fetch(recipeUrl);
-
-
-                    if (!response.ok) {
-
-                        console.error(
-                            "Rezept nicht gefunden:",
-                            recipeUrl
-                        );
-
-                        return null;
-                    }
-
-
-                    const recipe =
-                        await response.json();
-
-
-                    return recipe;
-
-                } catch (error) {
-
-                    console.error(
-                        "Fehler beim Rezept:",
-                        item.file,
-                        error
-                    );
-
-                    return null;
-                }
-
-            })
-
-        );
-
-
-        recipes =
-            loadedRecipes.filter(Boolean);
-
-
-        if (recipes.length === 0) {
-
-            throw new Error(
-                "Keine Rezepte gefunden."
-            );
-        }
-
-
-        renderTags();
-
-        renderRecipes(recipes);
-
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(error);
 
+        const grid =
+            document.getElementById("recipe-grid");
 
-        recipeList.innerHTML = `
-
-            <div class="empty">
-
-                <h3>
-                    Rezepte konnten nicht geladen werden.
-                </h3>
-
-                <p>
-                    Fehler:
-                    ${escapeHtml(error.message)}
-                </p>
-
-                <p>
-                    Öffne die Entwicklerkonsole des Browsers
-                    für weitere Informationen.
-                </p>
-
-            </div>
-
+        grid.innerHTML = `
+            <p>
+                Die Rezepte konnten nicht geladen werden.
+            </p>
         `;
     }
 }
 
 
 /*
- * Rezepte anzeigen
- */
-function renderRecipes(recipeData) {
+|--------------------------------------------------------------------------
+| SUCHE
+|--------------------------------------------------------------------------
+*/
 
-    if (!recipeData.length) {
+function setupSearch() {
 
-        recipeList.innerHTML =
-            `<p class="empty">
-                Keine Rezepte gefunden.
-            </p>`;
+    const searchInput =
+        document.getElementById("search");
 
-        return;
-    }
+    searchInput.addEventListener(
+        "input",
+        () => {
 
+            renderRecipes();
 
-    recipeList.innerHTML =
-        recipeData.map(recipe => {
-
-            const tags =
-                (recipe.tags || [])
-                    .map(tag => `
-                        <span class="recipe-card-tag">
-                            ${escapeHtml(tag)}
-                        </span>
-                    `)
-                    .join("");
-
-
-            return `
-
-                <article
-                    class="recipe-card"
-                    data-recipe="${escapeHtml(
-                        recipe.name
-                    )}"
-                >
-
-                    ${
-                        recipe.image
-                            ? `
-                                <img
-                                    class="recipe-image"
-                                    src="${fileUrl(recipe.image)}"
-                                    alt="${escapeHtml(recipe.name)}"
-                                    loading="lazy"
-                                >
-                              `
-                            : ""
-                    }
-
-
-                    <div class="recipe-card-content">
-
-                        <h2>
-                            ${escapeHtml(recipe.name)}
-                        </h2>
-
-                        <p>
-                            ${escapeHtml(
-                                recipe.description || ""
-                            )}
-                        </p>
-
-                        <div class="recipe-card-tags">
-                            ${tags}
-                        </div>
-
-                    </div>
-
-                </article>
-            `;
-
-        }).join("");
-
-
-    document
-        .querySelectorAll(".recipe-card")
-        .forEach(card => {
-
-            card.addEventListener(
-                "click",
-                () => {
-
-                    const recipe =
-                        recipes.find(
-                            item =>
-                                item.name ===
-                                card.dataset.recipe
-                        );
-
-                    if (recipe) {
-                        openRecipe(recipe);
-                    }
-
-                }
-            );
-
-        });
+        }
+    );
 }
 
 
 /*
- * Tags erzeugen
- */
-function renderTags() {
+|--------------------------------------------------------------------------
+| TAG FILTER
+|--------------------------------------------------------------------------
+*/
 
-    const allTags =
-        recipes.flatMap(
-            recipe => recipe.tags || []
-        );
+function setupTagFilter() {
 
+    const buttons =
+        document.querySelectorAll(".tag-button");
 
-    const uniqueTags =
-        [...new Set(allTags)].sort();
+    buttons.forEach(button => {
 
+        button.addEventListener(
+            "click",
+            () => {
 
-    tagsContainer.innerHTML = "";
+                activeTag =
+                    button.dataset.tag;
 
+                buttons.forEach(btn => {
+                    btn.classList.remove("active");
+                });
 
-    const allButton =
-        document.createElement("button");
+                button.classList.add("active");
 
+                renderRecipes();
 
-    allButton.className =
-        "tag-button active";
-
-
-    allButton.textContent = "Alle";
-
-
-    allButton.onclick = () => {
-
-        activeTag = null;
-
-        updateTagButtons();
-
-        filterRecipes();
-    };
-
-
-    tagsContainer.appendChild(
-        allButton
-    );
-
-
-    uniqueTags.forEach(tag => {
-
-        const button =
-            document.createElement("button");
-
-
-        button.className =
-            "tag-button";
-
-
-        button.textContent =
-            tag;
-
-
-        button.dataset.tag =
-            tag;
-
-
-        button.onclick = () => {
-
-            activeTag = tag;
-
-            updateTagButtons();
-
-            filterRecipes();
-        };
-
-
-        tagsContainer.appendChild(
-            button
+            }
         );
 
     });
@@ -335,257 +136,736 @@ function renderTags() {
 
 
 /*
- * Aktiven Tag markieren
- */
-function updateTagButtons() {
+|--------------------------------------------------------------------------
+| REZEPTE FILTERN
+|--------------------------------------------------------------------------
+*/
 
-    document
-        .querySelectorAll(".tag-button")
-        .forEach(button => {
+function getFilteredRecipes() {
 
-            button.classList.remove(
-                "active"
-            );
-
-
-            if (
-                activeTag === null &&
-                button.textContent === "Alle"
-            ) {
-
-                button.classList.add(
-                    "active"
-                );
-
-            }
+    const search =
+        document
+            .getElementById("search")
+            .value
+            .trim()
+            .toLowerCase();
 
 
-            if (
-                button.dataset.tag ===
-                activeTag
-            ) {
+    return recipes.filter(recipe => {
 
-                button.classList.add(
-                    "active"
-                );
-            }
+        /*
+         * Tag prüfen
+         */
 
-        });
+        const matchesTag =
+            activeTag === "Alle" ||
+            recipe.tags.includes(activeTag);
+
+
+        /*
+         * Suchbegriff prüfen
+         */
+
+        if (!search) {
+            return matchesTag;
+        }
+
+
+        const title =
+            recipe.title.toLowerCase();
+
+        const description =
+            (recipe.description || "")
+                .toLowerCase();
+
+        const tags =
+            recipe.tags
+                .join(" ")
+                .toLowerCase();
+
+        const ingredients =
+            recipe.ingredients
+                .map(
+                    ingredient =>
+                        ingredient.name
+                )
+                .join(" ")
+                .toLowerCase();
+
+
+        const matchesSearch =
+            title.includes(search) ||
+            description.includes(search) ||
+            tags.includes(search) ||
+            ingredients.includes(search);
+
+
+        return matchesTag && matchesSearch;
+
+    });
+
 }
 
 
 /*
- * Suche
- */
-searchInput.addEventListener(
-    "input",
-    filterRecipes
-);
+|--------------------------------------------------------------------------
+| REZEPTE DARSTELLEN
+|--------------------------------------------------------------------------
+*/
 
+function renderRecipes() {
 
-function filterRecipes() {
+    const grid =
+        document.getElementById("recipe-grid");
 
-    const search =
-        searchInput.value
-            .toLowerCase()
-            .trim();
+    const noResults =
+        document.getElementById("no-results");
+
+    const count =
+        document.getElementById("recipe-count");
 
 
     const filtered =
-        recipes.filter(recipe => {
-
-            const text = `
-
-                ${recipe.name}
-
-                ${recipe.description || ""}
-
-                ${(recipe.tags || []).join(" ")}
-
-            `.toLowerCase();
+        getFilteredRecipes();
 
 
-            const matchesSearch =
-                text.includes(search);
+    grid.innerHTML = "";
 
 
-            const matchesTag =
-                activeTag === null ||
-                (recipe.tags || [])
-                    .includes(activeTag);
+    count.textContent =
+        `${filtered.length} Rezept${
+            filtered.length === 1 ? "" : "e"
+        }`;
 
 
-            return (
-                matchesSearch &&
-                matchesTag
+    noResults.hidden =
+        filtered.length !== 0;
+
+
+    filtered.forEach(recipe => {
+
+        const card =
+            document.createElement("article");
+
+        card.className =
+            "recipe-card";
+
+
+        card.innerHTML = `
+
+            <a href="rezepte/${recipe.path}">
+
+                <img
+                    src="rezepte/${recipe.image}"
+                    alt="${escapeHtml(recipe.title)}"
+                    class="recipe-image"
+                >
+
+                <div class="recipe-content">
+
+                    <h3 class="recipe-title">
+                        ${escapeHtml(recipe.title)}
+                    </h3>
+
+                    <p class="recipe-description">
+                        ${escapeHtml(recipe.description || "")}
+                    </p>
+
+                    <div class="recipe-tags">
+
+                        ${recipe.tags.map(tag => `
+                            <span class="recipe-tag">
+                                ${escapeHtml(tag)}
+                            </span>
+                        `).join("")}
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        `;
+
+
+        /*
+         * Rezept per Klick in Wochenplan aufnehmen
+         */
+
+        const addButton =
+            document.createElement("button");
+
+        addButton.textContent =
+            "Zum Wochenplan";
+
+
+        addButton.className =
+            "button";
+
+
+        addButton.addEventListener(
+            "click",
+            event => {
+
+                event.preventDefault();
+
+                openWeekPlanSelector(recipe);
+
+            }
+        );
+
+
+        card
+            .querySelector(".recipe-content")
+            .appendChild(addButton);
+
+
+        grid.appendChild(card);
+
+    });
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| WOCHENPLAN
+|--------------------------------------------------------------------------
+*/
+
+function setupWeekPlan() {
+
+    document
+        .querySelectorAll(".meal-slot")
+        .forEach(slot => {
+
+            slot.addEventListener(
+                "click",
+                () => {
+
+                    /*
+                     * Später kann hier ein Rezeptauswahldialog
+                     * geöffnet werden.
+                     */
+
+                }
+            );
+
+        });
+
+}
+
+
+function openWeekPlanSelector(recipe) {
+
+    const day =
+        prompt(
+            `Für welchen Tag möchtest du "${recipe.title}" einplanen?\n\n` +
+            `Montag, Dienstag, Mittwoch, Donnerstag, Freitag, Samstag oder Sonntag`
+        );
+
+
+    if (!day) {
+        return;
+    }
+
+
+    const normalized =
+        normalizeDay(day);
+
+
+    if (!normalized) {
+
+        alert(
+            "Bitte einen gültigen Wochentag eingeben."
+        );
+
+        return;
+
+    }
+
+
+    weeklyPlan[normalized] =
+        recipe.id;
+
+
+    saveWeeklyPlan();
+
+    renderWeeklyPlan();
+
+    renderShoppingList();
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| WOCHENPLAN DARSTELLEN
+|--------------------------------------------------------------------------
+*/
+
+function renderWeeklyPlan() {
+
+    document
+        .querySelectorAll(".meal-slot")
+        .forEach(slot => {
+
+            const day =
+                slot.dataset.slot;
+
+            const recipeId =
+                weeklyPlan[day];
+
+
+            if (!recipeId) {
+
+                slot.innerHTML = `
+                    <span class="empty-slot">
+                        Noch kein Gericht
+                    </span>
+                `;
+
+                return;
+
+            }
+
+
+            const recipe =
+                recipes.find(
+                    item => item.id === recipeId
+                );
+
+
+            if (!recipe) {
+                return;
+            }
+
+
+            slot.innerHTML = `
+
+                <div class="planned-meal">
+
+                    <a
+                        href="rezepte/${recipe.path}"
+                    >
+                        ${escapeHtml(recipe.title)}
+                    </a>
+
+                    <br>
+
+                    <button
+                        class="remove-meal"
+                        data-day="${day}"
+                    >
+                        Entfernen
+                    </button>
+
+                </div>
+
+            `;
+
+
+            slot
+                .querySelector(".remove-meal")
+                .addEventListener(
+                    "click",
+                    event => {
+
+                        event.stopPropagation();
+
+                        weeklyPlan[day] =
+                            null;
+
+                        saveWeeklyPlan();
+
+                        renderWeeklyPlan();
+
+                        renderShoppingList();
+
+                    }
+                );
+
+        });
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| WOCHENPLAN SPEICHERN
+|--------------------------------------------------------------------------
+*/
+
+function saveWeeklyPlan() {
+
+    localStorage.setItem(
+        "kochbuch-weekly-plan",
+        JSON.stringify(weeklyPlan)
+    );
+
+}
+
+
+function loadWeeklyPlan() {
+
+    const saved =
+        localStorage.getItem(
+            "kochbuch-weekly-plan"
+        );
+
+
+    if (!saved) {
+        return;
+    }
+
+
+    try {
+
+        const parsed =
+            JSON.parse(saved);
+
+        weeklyPlan = {
+            ...weeklyPlan,
+            ...parsed
+        };
+
+    } catch (error) {
+
+        console.error(
+            "Wochenplan konnte nicht geladen werden.",
+            error
+        );
+
+    }
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| EINKAUFSLISTE
+|--------------------------------------------------------------------------
+*/
+
+function generateShoppingList() {
+
+    const ingredients = {};
+
+
+    Object.values(weeklyPlan)
+        .forEach(recipeId => {
+
+            if (!recipeId) {
+                return;
+            }
+
+
+            const recipe =
+                recipes.find(
+                    item => item.id === recipeId
+                );
+
+
+            if (!recipe) {
+                return;
+            }
+
+
+            recipe.ingredients.forEach(
+                ingredient => {
+
+                    const key =
+                        `${ingredient.name}|${ingredient.unit}`;
+
+
+                    if (!ingredients[key]) {
+
+                        ingredients[key] = {
+                            name: ingredient.name,
+                            amount: 0,
+                            unit: ingredient.unit
+                        };
+
+                    }
+
+
+                    /*
+                     * Summierbare Mengen
+                     */
+
+                    if (
+                        isSummableUnit(
+                            ingredient.unit
+                        )
+                    ) {
+
+                        ingredients[key].amount +=
+                            Number(
+                                ingredient.amount
+                            );
+
+                    } else {
+
+                        /*
+                         * Nicht summierbare Einheiten
+                         * werden separat behandelt.
+                         */
+
+                        ingredients[key].amount = null;
+
+                    }
+
+                }
             );
 
         });
 
 
-    renderRecipes(filtered);
+    return Object.values(ingredients);
+
 }
 
 
 /*
- * Rezept öffnen
- */
-function openRecipe(recipe) {
+|--------------------------------------------------------------------------
+| SUMMIERBARE EINHEITEN
+|--------------------------------------------------------------------------
+*/
 
-    const tags =
-        (recipe.tags || [])
-            .map(tag => `
-                <span class="detail-tag">
-                    ${escapeHtml(tag)}
-                </span>
-            `)
-            .join("");
+function isSummableUnit(unit) {
+
+    const summableUnits = [
+
+        "g",
+        "kg",
+
+        "ml",
+        "l",
+
+        "TL",
+        "EL",
+
+        "Stück"
+
+    ];
+
+
+    return summableUnits.includes(unit);
+
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| EINKAUFSLISTE DARSTELLEN
+|--------------------------------------------------------------------------
+*/
+
+function renderShoppingList() {
+
+    const container =
+        document.getElementById(
+            "shopping-list"
+        );
 
 
     const ingredients =
-        (recipe.ingredients || [])
-            .map(item => `
-                <li>
-                    ${escapeHtml(item)}
-                </li>
-            `)
-            .join("");
+        generateShoppingList();
 
 
-    const steps =
-        (recipe.steps || [])
-            .map(step => `
-                <li>
-                    ${escapeHtml(step)}
-                </li>
-            `)
-            .join("");
+    if (ingredients.length === 0) {
+
+        container.innerHTML = `
+            <p>
+                Plane Gerichte für deine Woche,
+                um eine Einkaufsliste zu erstellen.
+            </p>
+        `;
+
+        return;
+
+    }
 
 
-    modalContent.innerHTML = `
+    container.innerHTML = "";
 
-        ${
-            recipe.image
-                ? `
-                    <img
-                        class="recipe-detail-image"
-                        src="${fileUrl(recipe.image)}"
-                        alt="${escapeHtml(recipe.name)}"
-                    >
-                  `
-                : ""
+
+    ingredients.forEach(
+        (ingredient, index) => {
+
+            const item =
+                document.createElement("label");
+
+
+            item.className =
+                "shopping-item";
+
+
+            const amount =
+                ingredient.amount === null
+                    ? ""
+                    : `${formatAmount(ingredient.amount)} ${ingredient.unit}`;
+
+
+            item.innerHTML = `
+
+                <input
+                    type="checkbox"
+                    id="shopping-${index}"
+                >
+
+                <span>
+                    ${escapeHtml(ingredient.name)}
+                </span>
+
+                <span class="shopping-amount">
+                    ${amount}
+                </span>
+
+            `;
+
+
+            const checkbox =
+                item.querySelector("input");
+
+
+            checkbox.addEventListener(
+                "change",
+                () => {
+
+                    item.classList.toggle(
+                        "checked",
+                        checkbox.checked
+                    );
+
+                }
+            );
+
+
+            container.appendChild(item);
+
         }
-
-
-        <div class="recipe-detail-content">
-
-            <div class="recipe-detail">
-
-                <h2>
-                    ${escapeHtml(recipe.name)}
-                </h2>
-
-
-                <p class="recipe-description">
-                    ${escapeHtml(
-                        recipe.description || ""
-                    )}
-                </p>
-
-
-                <div class="detail-tags">
-                    ${tags}
-                </div>
-
-
-                <h3>
-                    Zutaten
-                </h3>
-
-                <ul>
-                    ${ingredients}
-                </ul>
-
-
-                <h3>
-                    Zubereitung
-                </h3>
-
-                <ol>
-                    ${steps}
-                </ol>
-
-            </div>
-
-        </div>
-
-    `;
-
-
-    modal.classList.remove(
-        "hidden"
     );
 
-    document.body.style.overflow =
-        "hidden";
 }
 
 
 /*
- * Modal schließen
- */
-function closeRecipe() {
+|--------------------------------------------------------------------------
+| CLEAR BUTTONS
+|--------------------------------------------------------------------------
+*/
 
-    modal.classList.add(
-        "hidden"
+function setupClearButtons() {
+
+    const clearPlan =
+        document.getElementById(
+            "clear-plan"
+        );
+
+
+    clearPlan.addEventListener(
+        "click",
+        () => {
+
+            weeklyPlan = {
+                Montag: null,
+                Dienstag: null,
+                Mittwoch: null,
+                Donnerstag: null,
+                Freitag: null,
+                Samstag: null,
+                Sonntag: null
+            };
+
+
+            saveWeeklyPlan();
+
+            renderWeeklyPlan();
+
+            renderShoppingList();
+
+        }
     );
 
-    document.body.style.overflow =
-        "";
+
+    const clearShoppingList =
+        document.getElementById(
+            "clear-shopping-list"
+        );
+
+
+    clearShoppingList.addEventListener(
+        "click",
+        () => {
+
+            document
+                .querySelectorAll(
+                    ".shopping-item input"
+                )
+                .forEach(input => {
+
+                    input.checked = false;
+
+                    input
+                        .closest(".shopping-item")
+                        .classList
+                        .remove("checked");
+
+                });
+
+        }
+    );
+
 }
 
 
-closeModal.onclick =
-    closeRecipe;
-
-
-modal.onclick = event => {
-
-    if (event.target === modal) {
-        closeRecipe();
-    }
-
-};
-
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (event.key === "Escape") {
-            closeRecipe();
-        }
-
-    }
-);
-
-
 /*
- * HTML sicher ausgeben
- */
+|--------------------------------------------------------------------------
+| HILFSFUNKTIONEN
+|--------------------------------------------------------------------------
+*/
+
+function normalizeDay(day) {
+
+    const days = {
+        "montag": "Montag",
+        "dienstag": "Dienstag",
+        "mittwoch": "Mittwoch",
+        "donnerstag": "Donnerstag",
+        "freitag": "Freitag",
+        "samstag": "Samstag",
+        "sonntag": "Sonntag"
+    };
+
+
+    return days[
+        day.trim().toLowerCase()
+    ] || null;
+
+}
+
+
+function formatAmount(amount) {
+
+    if (Number.isInteger(amount)) {
+        return amount;
+    }
+
+    return Number(
+        amount.toFixed(2)
+    );
+
+}
+
+
 function escapeHtml(value) {
 
-    const element =
-        document.createElement("div");
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 
-    element.textContent =
-        String(value ?? "");
-
-    return element.innerHTML;
 }
-
-
-/*
- * START
- */
-loadRecipes();
