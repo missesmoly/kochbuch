@@ -318,7 +318,7 @@ function renderWeeklyPlan() {
       <div class="weekly-plan-item">
         <div>
           <h3>${escapeHtml(recipe.title)}</h3>
-          <span>${item.servings} Portion${item.servings === 1 ? "" : "en"}</span>
+          <span>${item.servings} Gericht${item.servings === 1 ? "" : "e"}</span>
         </div>
         <div class="plan-controls">
           <button data-plan-minus="${escapeHtml(item.recipeId)}">−</button>
