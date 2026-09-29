@@ -306,7 +306,7 @@ function renderWeeklyPlan() {
   const container = document.getElementById("weekly-plan-list");
 
   if (!weeklyPlan.length) {
-    container.innerHTML = `<p class="empty-message">Dein Wochenplan ist noch leer.</p>`;
+    container.innerHTML = `<p class="empty-message">Der Wochenplan ist noch leer.</p>`;
     return;
   }
 
