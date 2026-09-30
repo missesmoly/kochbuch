@@ -456,7 +456,7 @@ function setupActions() {
 }
 
 function updatePlanCount() {
-  const count = weeklyPlan.reduce((sum, item) => sum + item.servings, 0);
+  const count = weeklyPlan.length;
   document.getElementById("plan-count").textContent = count;
 }
 
