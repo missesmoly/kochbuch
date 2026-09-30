@@ -361,6 +361,7 @@ function removeFromPlan(recipeId) {
   renderWeeklyPlan();
   renderShoppingList();
   updatePlanCount();
+  renderRecipes();
 }
 
 function renderShoppingList() {
