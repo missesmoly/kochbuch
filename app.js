@@ -573,7 +573,7 @@ manualForm.addEventListener("submit", event => {
       } else {
         completedShoppingItems.delete(id);
       }
-
+    });
       
 document.getElementById("reset-shopping").addEventListener("click", () => {
   completedShoppingItems.clear();
