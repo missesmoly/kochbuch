@@ -527,6 +527,30 @@ function renderShoppingList() {
   });
 }
 
+
+function setupActions() {
+  document.getElementById("clear-plan").addEventListener("click", () => {
+    weeklyPlan = [];
+    saveWeeklyPlan();
+    renderWeeklyPlan();
+    renderShoppingList();
+    updatePlanCount();
+    renderRecipes();
+  });
+
+  document.getElementById("reset-shopping").addEventListener("click", () => {
+    completedShoppingItems.clear();
+    renderShoppingList();
+  });
+}
+
+function updatePlanCount() {
+  const count = weeklyPlan.length;
+  document.getElementById("plan-count").textContent = count
+    ;
+}
+
+
 function renderAll() {
   renderTagFilters();
   renderRecipes();
