@@ -238,3 +238,19 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px 60px; }
 .weekly-plan-recipe-title {
   cursor: pointer;
 }
+
+
+#shopping-list input[type="checkbox"]:checked + span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.shopping-completed {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #d8c8c0;
+}
+
+.shopping-completed h3 {
+  color: #82736d;
+}
