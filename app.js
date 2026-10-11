@@ -7,6 +7,7 @@ let currentRecipeServings = 1;
 let completedShoppingItems = new Set();
 let manualShoppingItems = [];
 
+
 const MANUAL_SHOPPING_KEY = "kochbuch-manual-shopping-list";
 
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
