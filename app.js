@@ -24,9 +24,9 @@ async function init() {
     setupModal();
     setupActions();
     renderAll();
-  } catch (error) {
-    console.error(error);
-    showError("Die Rezepte konnten nicht geladen werden. Bitte prüfe die Dateien im Repository.");
+    } catch (error) {
+  console.error(error);
+  showError(`Fehler: ${error.message}`);
   }
 }
 
