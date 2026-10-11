@@ -185,6 +185,7 @@ function renderRecipes() {
 
     addToWeeklyPlan(button.dataset.add);
     renderRecipes();
+    updatePlanCount();
   });
   });
 }
