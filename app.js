@@ -4,6 +4,7 @@ let selectedTags = new Set();
 let weeklyPlan = [];
 let currentRecipe = null;
 let currentRecipeServings = 1;
+let completedShoppingItems = new Set();
 
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
@@ -401,6 +402,7 @@ function removeFromPlan(recipeId) {
   renderRecipes();
 }
 
+
 function renderShoppingList() {
   const container = document.getElementById("shopping-list");
 
@@ -420,15 +422,17 @@ function renderShoppingList() {
     const baseServings = recipe.servings || 1;
     const scale = item.servings / baseServings;
 
-    (recipe.ingredients || []).forEach(ingredient => {
+    (recipe.ingredients || []).forEach((ingredient, index) => {
       const amount = (ingredient.amount || 0) * scale;
       const unit = ingredient.unit || "";
-      const key = `${ingredient.category || "Sonstiges"}|${ingredient.name}|${unit}`;
+      const category = ingredient.category || "Sonstiges";
+      const key = `${category}|${ingredient.name}|${unit}`;
 
       if (summableUnits.includes(unit)) {
         if (!grouped[key]) {
           grouped[key] = {
-            category: ingredient.category || "Sonstiges",
+            id: `grouped:${key}`,
+            category,
             name: ingredient.name,
             unit,
             amount: 0
@@ -437,7 +441,8 @@ function renderShoppingList() {
         grouped[key].amount += amount;
       } else {
         individual.push({
-          category: ingredient.category || "Sonstiges",
+          id: `single:${recipe.id}:${index}`,
+          category,
           name: ingredient.name,
           unit,
           amount
@@ -451,32 +456,76 @@ function renderShoppingList() {
     ...individual
   ];
 
+  const openEntries = entries.filter(
+    entry => !completedShoppingItems.has(entry.id)
+  );
+
+  const doneEntries = entries.filter(
+    entry => completedShoppingItems.has(entry.id)
+  );
+
   const categories = {};
-  entries.forEach(entry => {
-    if (!categories[entry.category]) categories[entry.category] = [];
+  openEntries.forEach(entry => {
+    if (!categories[entry.category]) {
+      categories[entry.category] = [];
+    }
     categories[entry.category].push(entry);
   });
 
-  container.innerHTML = Object.keys(categories).sort().map(category => `
+  function renderEntry(entry) {
+    const checked = completedShoppingItems.has(entry.id);
+
+    return `
+      <li>
+        <label>
+          <input
+            type="checkbox"
+            data-shopping-id="${escapeHtml(entry.id)}"
+            ${checked ? "checked" : ""}
+          >
+          <span>${formatAmount(entry.amount)} ${escapeHtml(entry.unit)} ${escapeHtml(entry.name)}</span>
+        </label>
+      </li>
+    `;
+  }
+
+  const openHtml = Object.keys(categories).sort().map(category => `
     <div class="shopping-category">
       <h3>${escapeHtml(category)}</h3>
       <ul>
-        ${categories[category].map((entry, index) => {
-          const id = `shopping-${slugify(category)}-${index}`;
-          return `
-            <li>
-              <label>
-                <input type="checkbox" data-shopping-id="${id}">
-                <span>${formatAmount(entry.amount)} ${escapeHtml(entry.unit)} ${escapeHtml(entry.name)}</span>
-              </label>
-            </li>
-          `;
-        }).join("")}
+        ${categories[category].map(renderEntry).join("")}
       </ul>
     </div>
   `).join("");
-}
 
+  const doneHtml = doneEntries.length ? `
+    <div class="shopping-category shopping-completed">
+      <h3>Erledigt (${doneEntries.length})</h3>
+      <ul>
+        ${doneEntries.map(renderEntry).join("")}
+      </ul>
+    </div>
+  ` : "";
+
+  container.innerHTML = `
+    ${openHtml || '<p class="empty-message">Alles erledigt!</p>'}
+    ${doneHtml}
+  `;
+
+  container.querySelectorAll("[data-shopping-id]").forEach(checkbox => {
+    checkbox.addEventListener("change", () => {
+      const id = checkbox.dataset.shoppingId;
+
+      if (checkbox.checked) {
+        completedShoppingItems.add(id);
+      } else {
+        completedShoppingItems.delete(id);
+      }
+
+      renderShoppingList();
+    });
+  });
+}
 function setupActions() {
   document.getElementById("clear-plan").addEventListener("click", () => {
     weeklyPlan = [];
@@ -535,3 +584,4 @@ function showError(message) {
     error.textContent = message;
   }
 }
+
