@@ -4,6 +4,7 @@ let selectedTags = new Set();
 let weeklyPlan = [];
 let currentRecipe = null;
 let currentRecipeServings = 1;
+let completedShoppingItems = new Set();
 
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
