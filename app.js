@@ -586,11 +586,15 @@ function setupActions() {
     renderRecipes();
   });
 
-  document.getElementById("reset-shopping").addEventListener("click", () => {
-    document.querySelectorAll("#shopping-list input[type='checkbox']").forEach(box => {
-      box.checked = false;
-    });
-  });
+ 
+document.getElementById("reset-shopping").addEventListener("click", () => {
+  completedShoppingItems.clear();
+  manualShoppingItems = [];
+
+  localStorage.removeItem(MANUAL_SHOPPING_KEY);
+
+  renderShoppingList();
+});
 }
 
 function updatePlanCount() {
