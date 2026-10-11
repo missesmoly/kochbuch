@@ -275,6 +275,7 @@ function renderRecipeModal() {
   if (weeklyPlan.some(item => item.recipeId === recipe.id)) return;
 
   addToWeeklyPlan(recipe.id, currentRecipeServings);
+    renderRecipes();
   renderRecipeModal();
 });  
 }
