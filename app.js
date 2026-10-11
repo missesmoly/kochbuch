@@ -343,7 +343,10 @@ function renderWeeklyPlan() {
     return `
       <div class="weekly-plan-item">
         <div>
-          <h3>${escapeHtml(recipe.title)}</h3>
+          <h3 class="weekly-plan-recipe-title"
+    data-open="${escapeHtml(recipe.id)}">
+  ${escapeHtml(recipe.title)}
+</h3>
           <span>${item.servings} Portion${item.servings === 1 ? "" : "en"}</span>
         </div>
         <div class="plan-controls">
@@ -364,6 +367,13 @@ function renderWeeklyPlan() {
   container.querySelectorAll("[data-plan-remove]").forEach(button => {
     button.addEventListener("click", () => removeFromPlan(button.dataset.planRemove));
   });
+
+container.querySelectorAll("[data-open]").forEach(element => {
+  element.addEventListener("click", () => {
+    openRecipeModal(element.dataset.open);
+  });
+});
+  
 }
 
 function changePlanAmount(recipeId, delta) {
