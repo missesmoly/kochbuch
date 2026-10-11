@@ -254,3 +254,28 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px 60px; }
 .shopping-completed h3 {
   color: #82736d;
 }
+
+
+.manual-shopping-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.manual-shopping-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.manual-shopping-form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid #d8c8c0;
+  border-radius: 8px;
+  background: #fffdfb;
+  font: inherit
+    ;
+}
