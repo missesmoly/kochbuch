@@ -377,6 +377,7 @@ function changePlanAmount(recipeId, delta) {
   renderWeeklyPlan();
   renderShoppingList();
   updatePlanCount();
+  renderRecipes();
 }
 
 function removeFromPlan(recipeId) {
@@ -471,6 +472,7 @@ function setupActions() {
     renderWeeklyPlan();
     renderShoppingList();
     updatePlanCount();
+    renderRecipes();
   });
 
   document.getElementById("reset-shopping").addEventListener("click", () => {
