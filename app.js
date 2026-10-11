@@ -194,7 +194,13 @@ function openRecipeModal(recipeId) {
   if (!recipe) return;
 
   currentRecipe = recipe;
-  currentRecipeServings = recipe.servings || 1;
+
+const plannedRecipe = weeklyPlan.find(item => item.recipeId === recipe.id);
+
+currentRecipeServings = plannedRecipe
+  ? plannedRecipe.servings
+  : (recipe.servings || 1);
+  
   renderRecipeModal();
 
   const modal = document.getElementById("recipe-modal");
@@ -251,16 +257,18 @@ function renderRecipeModal() {
   `;
 
   document.getElementById("portion-minus").addEventListener("click", () => {
-    if (currentRecipeServings > 1) {
-      currentRecipeServings--;
-      renderRecipeModal();
-    }
-  });
+  if (currentRecipeServings > 1) {
+    currentRecipeServings--;
+    syncRecipeWithPlan();
+    renderRecipeModal();
+  }
+});
 
   document.getElementById("portion-plus").addEventListener("click", () => {
-    currentRecipeServings++;
-    renderRecipeModal();
-  });
+  currentRecipeServings++;
+  syncRecipeWithPlan();
+  renderRecipeModal();
+});
 
   document.getElementById("modal-add-plan").addEventListener("click", () => {
   if (weeklyPlan.some(item => item.recipeId === recipe.id)) return;
@@ -268,6 +276,22 @@ function renderRecipeModal() {
   addToWeeklyPlan(recipe.id, currentRecipeServings);
   renderRecipeModal();
 });  
+}
+
+function syncRecipeWithPlan() {
+  if (!currentRecipe) return;
+
+  const plannedRecipe = weeklyPlan.find(
+    item => item.recipeId === currentRecipe.id
+  );
+
+  if (!plannedRecipe) return;
+
+  plannedRecipe.servings = currentRecipeServings;
+
+  saveWeeklyPlan();
+  renderWeeklyPlan();
+  renderShoppingList();
 }
 
 function setupModal() {
