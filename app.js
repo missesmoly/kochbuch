@@ -537,32 +537,33 @@ container.innerHTML = `
   ${doneHtml}
 `;
 
-document.getElementById("manual-shopping-form")
-  .addEventListener("submit", event => {
-    event.preventDefault();
 
-    const name = document.getElementById("manual-shopping-name").value.trim();
-    const amountInput = document.getElementById("manual-shopping-amount").value;
-    const unit = document.getElementById("manual-shopping-unit").value.trim();
+const manualForm = document.getElementById("manual-shopping-form");
 
-    if (!name) return;
+manualForm.addEventListener("submit", event => {
+  event.preventDefault();
 
-    manualShoppingItems.push({
-      id: `manual:${Date.now()}`,
-      category: "Manuell",
-      name,
-      amount: null,
-      unit: ""
-    });
+  const input = document.getElementById("manual-shopping-name");
+  const name = input.value.trim();
 
-    localStorage.setItem(
-      MANUAL_SHOPPING_KEY,
-      JSON.stringify(manualShoppingItems)
-    );
+  if (!name) return;
 
-    renderShoppingList()
-      ;
+  manualShoppingItems.push({
+    id: `manual:${Date.now()}`,
+    category: "Manuell",
+    name: name,
+    amount: null,
+    unit: ""
   });
+
+  localStorage.setItem(
+    MANUAL_SHOPPING_KEY,
+    JSON.stringify(manualShoppingItems)
+  );
+
+  renderShoppingList
+    ();
+});
 
   container.querySelectorAll("[data-shopping-id]").forEach(checkbox => {
     checkbox.addEventListener("change", () => {
