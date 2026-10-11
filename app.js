@@ -521,11 +521,10 @@ const entries = [
   
 container.innerHTML = `
   <form id="manual-shopping-form" class="manual-shopping-form">
-    <h3>Zutat hinzufügen</h3>
     <input
       id="manual-shopping-name"
       type="text"
-      placeholder="Sonstiges ..."
+      placeholder="Manuell zur Einkaufsliste ..."
       required
     >
     <button type="submit" class="primary-button">
@@ -575,6 +574,17 @@ manualForm.addEventListener("submit", event => {
         completedShoppingItems.delete(id);
       }
 
+      
+document.getElementById("reset-shopping").addEventListener("click", () => {
+  completedShoppingItems.clear();
+  manualShoppingItems = [];
+
+  localStorage.removeItem(MANUAL_SHOPPING_KEY);
+
+  renderShoppingList();
+}
+                                                          );
+
       renderShoppingList();
     });
   });
@@ -590,13 +600,7 @@ function setupActions() {
     renderShoppingList();
     updatePlanCount();
     renderRecipes();
-  });
-
-  document.getElementById("reset-shopping").addEventListener("click", () => {
-    document.querySelectorAll("#shopping-list input[type='checkbox']").forEach(box => {
-      box.checked = false;
-    });
-  });
+  }
 }
 
 function updatePlanCount() {
