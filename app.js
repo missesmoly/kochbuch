@@ -525,25 +525,11 @@ container.innerHTML = `
     <input
       id="manual-shopping-name"
       type="text"
-      placeholder="Zutat, z. B. Äpfel"
+      placeholder="Sonstiges ..."
       required
     >
-    <div class="manual-shopping-fields">
-      <input
-        id="manual-shopping-amount"
-        type="number"
-        min="0"
-        step="any"
-        placeholder="Menge"
-      >
-      <input
-        id="manual-shopping-unit"
-        type="text"
-        placeholder="Einheit, z. B. Stück"
-      >
-    </div>
     <button type="submit" class="primary-button">
-      Zutat hinzufügen
+      Hinzufügen
     </button>
   </form>
 
@@ -565,8 +551,8 @@ document.getElementById("manual-shopping-form")
       id: `manual:${Date.now()}`,
       category: "Manuell",
       name,
-      amount: amountInput === "" ? null : Number(amountInput),
-      unit
+      amount: null,
+      unit: ""
     });
 
     localStorage.setItem(
