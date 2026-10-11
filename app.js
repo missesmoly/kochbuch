@@ -587,13 +587,23 @@ function setupActions() {
   });
 
  
-document.getElementById("reset-shopping").addEventListener("click", () => {
-  completedShoppingItems.clear();
-  manualShoppingItems = [];
 
-  localStorage.removeItem(MANUAL_SHOPPING_KEY);
+document.getElementById("reset-shopping").addEventListener("click", () => {
+  const entriesToRemove = new Set(completedShoppingItems);
+
+  manualShoppingItems = manualShoppingItems.filter(
+    item => !entriesToRemove.has(item.id)
+  );
+
+  localStorage.setItem(
+    MANUAL_SHOPPING_KEY,
+    JSON.stringify(manualShoppingItems)
+  );
+
+  completedShoppingItems.clear();
 
   renderShoppingList();
+  
 });
 }
 
