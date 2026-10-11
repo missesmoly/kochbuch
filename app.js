@@ -5,7 +5,9 @@ let weeklyPlan = [];
 let currentRecipe = null;
 let currentRecipeServings = 1;
 let completedShoppingItems = new Set();
+let manualShoppingItems = [];
 
+const MANUAL_SHOPPING_KEY = "kochbuch-manual-shopping-list";
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
 function getRecipeImage(recipe) {
@@ -19,6 +21,15 @@ async function init() {
     await loadConfig();
     await loadRecipes();
     loadWeeklyPlan();
+    
+try {
+  manualShoppingItems = JSON.parse(
+    localStorage.getItem(MANUAL_SHOPPING_KEY)
+  ) || [];
+} catch {
+  manualShoppingItems = [];
+}
+    
     setupNavigation();
     setupSearchAndFilters();
     setupModal();
@@ -406,11 +417,6 @@ function removeFromPlan(recipeId) {
 function renderShoppingList() {
   const container = document.getElementById("shopping-list");
 
-  if (!weeklyPlan.length) {
-    container.innerHTML = `<p class="empty-message">Füge zuerst Gerichte zum Wochenplan hinzu.</p>`;
-    return;
-  }
-
   const summableUnits = config.summableUnits || [];
   const grouped = {};
   const individual = [];
@@ -451,10 +457,13 @@ function renderShoppingList() {
     });
   });
 
-  const entries = [
-    ...Object.values(grouped),
-    ...individual
-  ];
+  
+const entries = [
+  ...Object.values(grouped),
+  ...individual,
+  ...manualShoppingItems
+];
+  
 
   const openEntries = entries.filter(
     entry => !completedShoppingItems.has(entry.id)
@@ -507,10 +516,51 @@ function renderShoppingList() {
     </div>
   ` : "";
 
-  container.innerHTML = `
-    ${openHtml || '<p class="empty-message">Alles erledigt!</p>'}
-    ${doneHtml}
-  `;
+  
+container.innerHTML = `
+  <form id="manual-shopping-form" class="manual-shopping-form">
+    <input
+      id="manual-shopping-name"
+      type="text"
+      placeholder="Zur Liste ..."
+      required
+    >
+    <button type="submit" class="primary-button">
+      Hinzufügen
+    </button>
+  </form>
+
+  ${openHtml || '<p class="empty-message">Keine offenen Zutaten.</p>'}
+  ${doneHtml}
+`;
+
+
+const manualForm = document.getElementById("manual-shopping-form");
+
+manualForm.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const input = document.getElementById("manual-shopping-name");
+  const name = input.value.trim();
+
+  if (!name) return;
+
+  manualShoppingItems.push({
+    id: `manual:${Date.now()}`,
+    category: "Manuell",
+    name: name,
+    amount: null,
+    unit: ""
+  });
+
+  localStorage.setItem(
+    MANUAL_SHOPPING_KEY,
+    JSON.stringify(manualShoppingItems)
+  );
+
+    renderShoppingList()
+      ;
+  });
 
   container.querySelectorAll("[data-shopping-id]").forEach(checkbox => {
     checkbox.addEventListener("change", () => {
