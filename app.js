@@ -600,11 +600,12 @@ function setupActions() {
 
  
 
+
 document.getElementById("reset-shopping").addEventListener("click", () => {
-  const completedIds = new Set(completedShoppingItems);
+  completedShoppingItems.forEach(id => deletedShoppingItems.add(id));
 
   manualShoppingItems = manualShoppingItems.filter(
-    item => !completedIds.has(item.id)
+    item => !completedShoppingItems.has(item.id)
   );
 
   localStorage.setItem(
@@ -612,8 +613,12 @@ document.getElementById("reset-shopping").addEventListener("click", () => {
     JSON.stringify(manualShoppingItems)
   );
 
-  completedShoppingItems.clear();
+  localStorage.setItem(
+    DELETED_SHOPPING_KEY,
+    JSON.stringify([...deletedShoppingItems])
+  );
 
+  completedShoppingItems.clear();
   renderShoppingList()
     ;
 });
