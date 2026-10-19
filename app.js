@@ -479,15 +479,13 @@ const entries = [
   entry => !deletedShoppingItems.has(entry.id)
 );
   
-const openEntries = entries.filter(
+const openEntries = visibleEntries.filter(
   entry => !completedShoppingItems.has(entry.id)
 );
 
-const doneEntries = entries.filter(
+const doneEntries = visibleEntries.filter(
   entry => completedShoppingItems.has(entry.id)
-  
 );
-
   
   const categories = {};
   openEntries.forEach(entry => {
