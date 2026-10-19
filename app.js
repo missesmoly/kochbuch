@@ -272,11 +272,16 @@ function renderRecipeModal() {
         </p>
       ` : ""}
 
-      <h3>Zubereitung</h
-      3>
-      <ol class="steps-list">
-        ${(recipe.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join("")}
-      </ol>
+<h3>Zubereitung</h3>
+<div class="steps-list">
+  ${(recipe.steps || []).map((step, index) => `
+    <div class="step-box">
+      <span class="step-number">${index + 1}</span>
+      <p>${escapeHtml(step)}</p>
+    </div>
+  `).join("")}
+</div>
+
 
       <button id="modal-add-plan" class="primary-button" type="button"
   ${weeklyPlan.some(item => item.recipeId === recipe.id) ? "disabled" : ""}>
