@@ -20,19 +20,19 @@
       "name": "Pasta",
       "amount": 250,
       "unit": "g",
-      "category": "Trockenvorrat"
+      "category": "Trockenvorrat & Konserven"
     },
     {
       "name": "Pesto",
       "amount": 120,
       "unit": "g",
-      "category": "Trockenvorrat"
+      "category": "Trockenvorrat & Konserven"
     },
     {
       "name": "Parmesan",
       "amount": 40,
       "unit": "g",
-      "category": "Milchprodukte"
+      "category": "Kühlregal"
     }
   ],
   "steps": [
