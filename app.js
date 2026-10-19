@@ -255,6 +255,14 @@ function renderRecipeModal() {
       </div>
 
       <h3>Zutaten</h3>
+      
+        ${(recipe.pantry || []).length ? `
+        <p class="pantry-note">
+          <strong>Vorrat:</strong>
+          ${(recipe.pantry || []).map(escapeHtml).join(", ")}
+        </p>
+      ` : ""}
+      
       <ul class="ingredients-list">
         ${(recipe.ingredients || []).map(ingredient => `
           <li>
@@ -265,12 +273,7 @@ function renderRecipeModal() {
       
       </ul>
 
-      ${(recipe.pantry || []).length ? `
-        <p class="pantry-note">
-          <strong>Vorrat:</strong>
-          ${(recipe.pantry || []).map(escapeHtml).join(", ")}
-        </p>
-      ` : ""}
+    
 
 <h3>Zubereitung</h3>
 <div class="steps-list">
