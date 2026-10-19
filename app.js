@@ -7,8 +7,8 @@ let currentRecipeServings = 1;
 let completedShoppingItems = new Set();
 let manualShoppingItems = [];
 let deletedShoppingItems = new Set();
-const DELETED_SHOPPING_KEY = "kochbuch-deleted-shopping-items";
 
+const DELETED_SHOPPING_KEY = "kochbuch-deleted-shopping-items";
 const MANUAL_SHOPPING_KEY = "kochbuch-manual-shopping-list";
 const WEEKLY_STORAGE_KEY = "kochbuch-weekly-plan";
 
