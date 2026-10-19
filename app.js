@@ -475,6 +475,10 @@ const entries = [
   ...manualShoppingItems
 ];
 
+  const visibleEntries = entries.filter(
+  entry => !deletedShoppingItems.has(entry.id)
+);
+  
 const openEntries = entries.filter(
   entry => !completedShoppingItems.has(entry.id)
 );
