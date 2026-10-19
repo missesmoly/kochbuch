@@ -9,6 +9,13 @@
     "schnell"
   ],
   "servings": 2,
+
+"pantry": [
+  "Salz",
+  "Öl",
+  "Pfeffer"
+],
+  
   "ingredients": [
     {
       "name": "Pasta",
