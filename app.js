@@ -591,10 +591,10 @@ function setupActions() {
  
 
 document.getElementById("reset-shopping").addEventListener("click", () => {
-  const entriesToRemove = new Set(completedShoppingItems);
+  const completedIds = new Set(completedShoppingItems);
 
   manualShoppingItems = manualShoppingItems.filter(
-    item => !entriesToRemove.has(item.id)
+    item => !completedIds.has(item.id)
   );
 
   localStorage.setItem(
@@ -604,8 +604,8 @@ document.getElementById("reset-shopping").addEventListener("click", () => {
 
   completedShoppingItems.clear();
 
-  renderShoppingList();
-  
+  renderShoppingList()
+    ;
 });
 }
 
