@@ -353,6 +353,30 @@ function addToWeeklyPlan(recipeId, servings) {
   if (!recipe) return;
 
   const amount = servings || recipe.servings || 1;
+  // Frühere Löschmarkierungen für dieses Rezept entfernen
+const recipeIngredientIds = new Set(
+  (recipe.ingredients || []).map((ingredient, index) => {
+    const unit = ingredient.unit || "";
+    const category = ingredient.category || "Sonstiges";
+    const key = `${category}|${ingredient.name}|${unit}`;
+
+    if ((config.summableUnits || []).includes(unit)) {
+      return `grouped:${key}`;
+    }
+
+    return `single:${recipe.id}:${index}`;
+  })
+);
+
+recipeIngredientIds.forEach(id => {
+  deletedShoppingItems.delete(id);
+  completedShoppingItems.delete(id);
+});
+
+localStorage.setItem(
+  DELETED_SHOPPING_KEY,
+  JSON.stringify([...deletedShoppingItems])
+);
   const existing = weeklyPlan.find(item => item.recipeId === recipeId);
 
   if (existing) existing.servings += amount;
