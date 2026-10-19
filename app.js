@@ -262,9 +262,18 @@ function renderRecipeModal() {
             <span>${escapeHtml(ingredient.name || "")}</span>
           </li>
         `).join("")}
+      
       </ul>
 
-      <h3>Zubereitung</h3>
+      ${(recipe.pantry || []).length ? `
+        <p class="pantry-note">
+          <strong>Vorrat:</strong>
+          ${(recipe.pantry || []).map(escapeHtml).join(", ")}
+        </p>
+      ` : ""}
+
+      <h3>Zubereitung</h
+      3>
       <ol class="steps-list">
         ${(recipe.steps || []).map(step => `<li>${escapeHtml(step)}</li>`).join("")}
       </ol>
