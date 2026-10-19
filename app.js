@@ -25,6 +25,14 @@ async function init() {
     loadWeeklyPlan();
     
 try {
+  deletedShoppingItems = new Set(
+    JSON.parse(localStorage.getItem(DELETED_SHOPPING_KEY)) || []
+  );
+} catch {
+  deletedShoppingItems = new Set();
+}
+    
+try {
   manualShoppingItems = JSON.parse(
     localStorage.getItem(MANUAL_SHOPPING_KEY)
   ) || [];
