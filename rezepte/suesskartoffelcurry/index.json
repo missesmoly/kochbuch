@@ -20,19 +20,19 @@
     {
       "name": "Knoblauchzehe",
       "amount": 1,
-      "unit": "St",
+      "unit": "Stück",
       "category": "Obst & Gemüse"
     },
     {
       "name": "Zwiebel",
       "amount": 1,
-      "unit": "St",
+      "unit": "Stück",
       "category": "Obst & Gemüse"
     },
     {
       "name": "Limette",
       "amount": 1,
-      "unit": "St",
+      "unit": "Stück",
       "category": "Obst & Gemüse"
     },
     {
@@ -44,7 +44,7 @@
     {
       "name": "Granatapfel",
       "amount": 1,
-      "unit": "St",
+      "unit": "Stück",
       "category": "Obst & Gemüse"
     },
     {
@@ -74,7 +74,7 @@
     {
       "name": "Süßkartoffel",
       "amount": 1,
-      "unit": "St",
+      "unit": "Stück",
       "category": "Obst & Gemüse"
     }
   ],
