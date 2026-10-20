@@ -1,7 +1,6 @@
 {
   "recipes": [
     {
-      "id": "pasta-pesto",
       "path": "pasta-pesto/index.json",
       "image": "pasta-pesto/bild.jpg"
     },
