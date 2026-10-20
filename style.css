@@ -257,22 +257,6 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px 60px; }
 
 
 
-.manual-shopping-form {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.manual-shopping-form input {
-  flex: 1;
-  min-width: 0;
-  padding: 0.7rem;
-  border: 1px solid #d8c8c0;
-  border-radius: 8px;
-  background: #fffdfb;
-  font: inherit;
-
-}
 
 .pantry-note {
   margin: 1rem 0;
@@ -330,14 +314,34 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px 60px; }
 
 
 
-.manual-shopping-form select {
+
+.manual-shopping-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.manual-shopping-form input,
+.manual-shopping-form select,
+.manual-shopping-form button {
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  padding: 0.7rem;
+  padding: 0.75rem;
+  font: inherit;
+}
+
+.manual-shopping-form input,
+.manual-shopping-form select {
   border: 1px solid #d8c8c0;
   border-radius: 8px;
   background: #fffdfb;
-  font: inherit;
+}
 
+.manual-shopping-form button {
+  justify-self: stretch
+    ;
 }
