@@ -11,5 +11,12 @@
         "schnell"
       ]
     }
+
+        {
+      "id": "suesskartoffelcurry",
+      "path": "suesskartoffelcurry/index.json",
+      "title": "Süßkartoffelcurry",
+      ]
+        }
   ]
 }
