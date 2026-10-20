@@ -3,20 +3,13 @@
     {
       "id": "pasta-pesto",
       "path": "pasta-pesto/index.json",
-      "title": "Pasta mit Pesto",
-      "description": "Schnelle Pasta mit cremigem Pesto.",
-      "image": "pasta-pesto/bild.jpg",
-      "tags": [
-        "Hauptgericht",
-        "schnell"
-      ]
+      "image": "pasta-pesto/bild.jpg"
     },
 
         {
       "id": "suesskartoffelcurry",
       "path": "suesskartoffelcurry/index.json",
-      "title": "Süßkartoffelcurry"
-      
+      "image": "suesskartoffelcurry/bild.jpg"
         }
   ]
 }
