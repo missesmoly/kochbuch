@@ -573,17 +573,31 @@ const doneEntries = visibleEntries.filter(
 
   
 container.innerHTML = `
-  <form id="manual-shopping-form" class="manual-shopping-form">
-    <input
-      id="manual-shopping-name"
-      type="text"
-      placeholder="Zur Liste ..."
-      required
-    >
-    <button type="submit" class="primary-button">
-      Hinzufügen
-    </button>
-  </form>
+  
+<form id="manual-shopping-form" class="manual-shopping-form">
+  <input
+    id="manual-shopping-name"
+    type="text"
+    placeholder="Zur Liste …"
+    required
+  >
+
+  <select id="manual-shopping-category" required>
+    <option value="" disabled selected>Kategorie auswählen *</option>
+    <option value="Obst & Gemüse">Obst & Gemüse</option>
+    <option value="Kühlregal">Kühlregal</option>
+    <option value="TK">TK</option>
+    <option value="Trockenvorrat & Konserven">Vorrat & Konserven</option>
+    <option value="Getränke">Getränke</option>
+    <option value="Drogerie">Drogerie</option>
+    <option value="Sonstiges">Sonstiges</option>
+  </select>
+
+  <button type="submit" class="primary-button">
+    Hinzufügen
+  </button>
+</for
+m>
 
   ${openHtml || '<p class="empty-message">Keine offenen Zutaten.</p>'}
   ${doneHtml}
