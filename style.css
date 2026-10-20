@@ -348,22 +348,30 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px 60px; }
 
 
 #shopping-list .shopping-category li label {
-  display: inline-flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 8px;
-  width: auto;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: start;
+  justify-content: start;
+  column-gap: 8px;
+  width: 100%;
   text-align: left;
 }
 
 #shopping-list .shopping-category li label input[type="checkbox"] {
-  flex: 0 0 auto;
-  margin: 0;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  justify-self: start;
 }
 
 #shopping-list .shopping-category li label span {
-  flex: 0 1 auto;
-  width: auto;
-  text-align: left
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  overflow-wrap: anywhere
     ;
 }
