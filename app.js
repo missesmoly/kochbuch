@@ -604,19 +604,23 @@ m>
 `;
 
 
+
 const manualForm = document.getElementById("manual-shopping-form");
 
 manualForm.addEventListener("submit", event => {
   event.preventDefault();
 
   const input = document.getElementById("manual-shopping-name");
-  const name = input.value.trim();
+  const categorySelect = document.getElementById("manual-shopping-category");
 
-  if (!name) return;
+  const name = input.value.trim();
+  const category = categorySelect.value;
+
+  if (!name || !category) return;
 
   manualShoppingItems.push({
     id: `manual:${Date.now()}`,
-    category: "Manuell",
+    category: category,
     name: name,
     amount: null,
     unit: ""
@@ -627,9 +631,9 @@ manualForm.addEventListener("submit", event => {
     JSON.stringify(manualShoppingItems)
   );
 
-    renderShoppingList()
-      ;
-  });
+  renderShoppingList
+    ();
+});
 
   container.querySelectorAll("[data-shopping-id]").forEach(checkbox => {
     checkbox.addEventListener("change", () => {
