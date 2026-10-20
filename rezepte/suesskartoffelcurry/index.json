@@ -1,0 +1,104 @@
+
+{
+  "id": "suesskartoffelcurry",
+  "title": "Gelbes Süßkartoffelcurry mit Granatapfel, Babyspinat und Erdnussreis",
+  "description": "Ein aromatisches Curry mit Süßkartoffel, Kokosmilch, Babyspinat und Granatapfel, serviert mit Erdnuss-Basmatireis.",
+  "image": "bild.jpg",
+  "tags": [
+    "Hauptgericht",
+    "Vegan",
+    "MealPrep"
+  ],
+  "servings": 2,
+  "pantry": [
+    "Pflanzenöl",
+    "Salz",
+    "Zucker"
+  ],
+  "ingredients": [
+    {
+      "name": "Knoblauchzehe",
+      "amount": 1,
+      "unit": "Stück",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Kaffirlimettenblatt",
+      "amount": 1,
+      "unit": "Blatt",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Zwiebel",
+      "amount": 1,
+      "unit": "Stück",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Bio-Limette",
+      "amount": 1,
+      "unit": "Stück",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Zitronengras",
+      "amount": 1,
+      "unit": "Stange",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Basmatireis",
+      "amount": 150,
+      "unit": "g",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Granatapfel",
+      "amount": 1,
+      "unit": "Stück",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Erdnüsse",
+      "amount": 25,
+      "unit": "g",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Gelbe Currypaste",
+      "amount": 1,
+      "unit": "TL",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Babyspinat",
+      "amount": 50,
+      "unit": "g",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Kokosmilch",
+      "amount": 400,
+      "unit": "ml",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Süßkartoffel",
+      "amount": 1,
+      "unit": "Stück",
+      "category": "Obst & Gemüse"
+    }
+  ],
+  "steps": [
+    "Die Süßkartoffel schälen und in ca. 3 cm große Würfel schneiden. Die Zwiebel und den Knoblauch schälen und fein hacken.",
+    "Das Zitronengras von Strunk und Spitze befreien und das äußere Blatt entfernen. Mit einem Messerrücken flach klopfen. Von der Limette die Schale abreiben und den Saft auspressen.",
+    "In einem Topf das Pflanzenöl bei mittlerer Temperatur erhitzen. Zwiebel und Zitronengras darin 2 Minuten anbraten. Knoblauch dazugeben und mit 1 TL Zucker ca. 3 Minuten goldgelb anbraten. Anschließend die gelbe Currypaste zugeben und 2 Minuten mitbraten.",
+    "Süßkartoffelwürfel, Kokosmilch und 100 ml Wasser dazugeben, alles aufkochen und bei mittlerer Temperatur ca. 18 Minuten köcheln. Mit 1 TL Salz würzen. Gelegentlich umrühren.",
+    "Den Basmatireis mit der doppelten Menge Wasser, dem Kaffirlimettenblatt und ½ TL Salz zum Kochen bringen. Die Temperatur reduzieren und den Reis zugedeckt 10 Minuten köcheln lassen, bis er das Wasser vollständig aufgenommen hat. Dabei gelegentlich umrühren.",
+    "Währenddessen die Erdnüsse grob hacken. Den Granatapfel halbieren und die Kerne vorsichtig mit einem Löffel herauslösen.",
+    "Das Kaffirlimettenblatt aus dem gekochten Reis nehmen. Die gehackten Erdnüsse zum Reis geben und alles gut vermengen.",
+    "1 EL Limettensaft, 1 TL Limettenschale sowie Babyspinat zum Süßkartoffelcurry geben und alles gut vermengen. Anschließend vom Herd nehmen.",
+    "Das Süßkartoffelcurry zusammen mit dem Erdnussreis in tiefe Teller geben und mit Granatapfelkernen dekorieren."
+  ]
+
+}
