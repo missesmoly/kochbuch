@@ -345,3 +345,25 @@ main { max-width: 1100px; margin: 0 auto; padding: 34px 20px 60px; }
   justify-self: stretch
     ;
 }
+
+
+
+#shopping-list li label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  text-align: left;
+  width: 100%;
+}
+
+#shopping-list li label input[type="checkbox"] {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+#shopping-list li label span {
+  flex: 0 1 auto;
+  text-align: left
+    ;
+}
