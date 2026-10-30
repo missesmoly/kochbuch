@@ -1,7 +1,6 @@
 {
   "recipes": [
      {
-      "id": "suesskartoffelcurry",
       "path": "suesskartoffelcurry/index.json",
       "image": "suesskartoffelcurry/bild.jpg"
         },
