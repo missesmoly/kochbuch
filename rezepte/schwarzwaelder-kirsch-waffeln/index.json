@@ -2,7 +2,7 @@
 {
   "id": "schwarzwaelder-kirsch-waffeln",
   "title": "Schwarzwälder-Kirsch-Waffeln",
-  "description": "Eine besondere Waffelspezialität mit fruchtiger Kirschcreme, Sahne und knackiger dunkler Kuvertüre – inspiriert von der Schwarzwälder Kirschtorte.",
+  "description": "Waffeln – inspiriert von der Schwarzwälder Kirschtorte.",
   "image": "waffeln.jpeg",
   "tags": [
     "Dessert"
@@ -22,7 +22,7 @@
       "name": "Zucker",
       "amount": 120,
       "unit": "g",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Eier",
@@ -34,22 +34,22 @@
       "name": "Mehl",
       "amount": 100,
       "unit": "g",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Speisestärke",
       "amount": 50,
       "unit": "g",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Backpulver",
       "amount": 1,
       "unit": "TL",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
-      "name": "Unbehandelte Zitrone",
+      "name": "Zitrone",
       "amount": 0.5,
       "unit": "Stück",
       "category": "Obst & Gemüse"
@@ -58,19 +58,19 @@
       "name": "Sauerkirschen",
       "amount": 1,
       "unit": "Glas",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Vanillezucker",
       "amount": 1,
       "unit": "Päckchen",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Vanillepuddingpulver",
       "amount": 1,
       "unit": "Päckchen",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Kirschwasser",
@@ -85,25 +85,19 @@
       "category": "Kühlregal"
     },
     {
-      "name": "Dunkle Kuvertüre",
-      "amount": 100,
-      "unit": "g",
-      "category": "Vorrat und Konserven"
-    },
-    {
-      "name": "Puderzucker",
+      "name": "Dunkle Kuvertüre oder Schokosauce",
       "amount": 1,
-      "unit": "Portion nach Bedarf",
-      "category": "Vorrat und Konserven"
+      "unit": "nach Bedarf",
+      "category": "Vorrat & Konserven"
     }
   ],
   "steps": [
-    "Für den Teig Butter, Zucker und Eier schaumig schlagen. Mehl, Speisestärke und Backpulver mischen und anschließend nach und nach unter den Teig ziehen. Die abgeriebene Zitronenschale unterrühren.",
-    "Den Teig portionsweise im vorgeheizten, gefetteten Waffeleisen goldbraun backen. Die Waffeln anschließend auf einem Kuchengitter abkühlen lassen.",
+    "Für den Teig Butter, Zucker und Eier schaumig schlagen. Mehl, Speisestärke und Backpulver mischen und anschließend nach und nach unter den Teig ziehen. Zitronenschale abreiben und unterrühren.",
     "Für die Füllung die Kirschen abgießen und 350 ml Kirschsaft abmessen. Den Saft in einem Topf zum Kochen bringen.",
-    "Vanillezucker und Puddingpulver mit dem Kirschwasser anrühren, zum heißen Kirschsaft geben und alles einmal aufkochen lassen. Anschließend abkühlen lassen.",
+    "Vanillezucker und Puddingpulver mit dem Kirschwasser (nicht Kirschsaft!) anrühren, zum heißen Kirschsaft geben und alles einmal aufkochen lassen. Anschließend die Kirsche hinzugeben und abkühlen lassen.",
+    "Den Teig portionsweise im vorgeheizten, gefetteten Waffeleisen goldbraun backen.",
     "Die Sahne steif schlagen.",
-    "Die dunkle Kuvertüre über einem heißen Wasserbad schmelzen und die Waffeln damit bestreichen.",
-    "Auf eine Waffel jeweils 2 Esslöffel Kirschcreme und Sahne geben. Mit einer zweiten Waffel abdecken und mit Puderzucker bestäuben."
+    "Die dunkle Kuvertüre über einem heißen Wasserbad schmelzen und die Waffeln damit (oder mit Schokosauce) bestreichen.",
+    "Auf eine Waffel jeweils 2 Esslöffel Kirschcreme und Sahne geben."
   ]
 }
