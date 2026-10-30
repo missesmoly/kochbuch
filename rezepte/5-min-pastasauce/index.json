@@ -2,53 +2,55 @@
 {
   "id": "5-minuten-pastasauce",
   "title": "5-Minuten-Pastasauce",
-  "description": "Cremige, würzige Pastasauce mit Artischockenherzen, getrockneten Tomaten, Parmesan und frischem Basilikum.",
+  "description": "Würzige Pastasauce mit Artischockenherzen, getrockneten Tomaten und frischem Basilikum.",
   "image": "5-min-sauce.jpeg",
   "tags": [
     "Hauptgericht",
-    "schnell"
+    "schnell",
+    "Mealprep",
+    "Vegan"
   ],
-  "servings": 2,
+  "servings": 4,
   "pantry": [
     "Salz",
     "Pfeffer"
   ],
   "ingredients": [
     {
-      "name": "Schnell garende Nudeln",
-      "amount": 250,
+      "name": "Nudeln",
+      "amount": 500,
       "unit": "g",
-      "category": "Vorrat und Konserven"
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Artischockenherzen",
-      "amount": 1,
-      "unit": "kleine Dose",
-      "category": "Vorrat und Konserven"
+      "amount": 2,
+      "unit": "kleine Gläser",
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Getrocknete Tomaten in Öl",
-      "amount": 12,
-      "unit": "Stück",
-      "category": "Vorrat und Konserven"
+      "amount": 1,
+      "unit": "Glas",
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Knoblauchzehe",
-      "amount": 0.5,
+      "amount": 1,
       "unit": "Stück",
       "category": "Obst & Gemüse"
     },
     {
-      "name": "Parmesan oder vegetarischer Hartkäse",
-      "amount": 100,
+      "name": "vegane Kochcreme",
+      "amount": 150,
       "unit": "g",
       "category": "Kühlregal"
     },
     {
-      "name": "Olivenöl",
-      "amount": 60,
-      "unit": "ml",
-      "category": "Vorrat und Konserven"
+      "name": "Hefeflocken",
+      "amount": 3,
+      "unit": "EL",
+      "category": "Vorrat & Konserven"
     },
     {
       "name": "Basilikum",
@@ -59,8 +61,7 @@
   ],
   "steps": [
     "Nudeln nach Packungsanweisung in reichlich Salzwasser bissfest kochen.",
-    "Währenddessen für die 5-Minuten-Nudelsauce die abgetropften Artischockenherzen und Tomaten in einen Multizerkleinerer geben. Die halbe Knoblauchzehe hineinreiben. Parmesan in grobe Scheiben schneiden und zusammen mit dem Olivenöl hinzufügen. Pfeffern, leicht salzen und alles gründlich vermixen. Tipp: Lassen sich die Zutaten schlecht zerkleinern, 1–2 EL Nudelkochwasser hinzugeben.",
-    "Nudeln abgießen und dabei etwas Kochwasser auffangen. Nudeln in eine Pfanne geben. Saucenpaste und einige Esslöffel Nudelwasser hinzufügen und alles aufkochen. Basilikum grob hacken und dazugeben. 1–2 Minuten köcheln lassen, bis die gewünschte Cremigkeit erreicht ist. Mit Salz und Pfeffer abschmecken.",
-    "Das fertige Nudelgericht nach Belieben mit Parmesanspänen oder Burrata servieren."
+    "Währenddessen für die 5-Minuten-Nudelsauce die abgetropften Artischockenherzen und Tomaten (mit Öl) in einen Multizerkleinerer geben oder mit einem Pürierstab zerkleinern. Die Knoblauchzehe hineinreiben. Hefeflocken und vegane Kochcreme hinzufügen. Pfeffern, leicht salzen und alles gründlich vermixen. Tipp: Lassen sich die Zutaten schlecht zerkleinern, 1–2 EL Nudelkochwasser hinzugeben.",
+    "Nudeln abgießen und dabei etwas Kochwasser auffangen. Saucenpaste hinzufügen und alles aufkochen. Basilikum grob hacken und dazugeben. 1–2 Minuten köcheln lassen, bis die gewünschte Cremigkeit erreicht ist. Mit Salz und Pfeffer abschmecken."
   ]
 }
