@@ -1,11 +1,6 @@
 {
   "recipes": [
-    {
-      "path": "pasta-pesto/index.json",
-      "image": "pasta-pesto/bild.jpg"
-    },
-
-        {
+     {
       "id": "suesskartoffelcurry",
       "path": "suesskartoffelcurry/index.json",
       "image": "suesskartoffelcurry/bild.jpg"
