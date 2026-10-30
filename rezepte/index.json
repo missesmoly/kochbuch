@@ -9,6 +9,10 @@
       "id": "suesskartoffelcurry",
       "path": "suesskartoffelcurry/index.json",
       "image": "suesskartoffelcurry/bild.jpg"
-        }
+        },
+     {
+      "path": "schwarzwaelder-kirsch-waffeln/index.json",
+      "image": "schwarzwaelder-kirsch-waffeln/waffeln.jpeg"
+    }
   ]
 }
