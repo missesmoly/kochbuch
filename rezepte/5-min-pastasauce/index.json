@@ -1,0 +1,66 @@
+
+{
+  "id": "5-minuten-pastasauce",
+  "title": "5-Minuten-Pastasauce",
+  "description": "Cremige, würzige Pastasauce mit Artischockenherzen, getrockneten Tomaten, Parmesan und frischem Basilikum.",
+  "image": "5-min-sauce.jpeg",
+  "tags": [
+    "Hauptgericht",
+    "schnell"
+  ],
+  "servings": 2,
+  "pantry": [
+    "Salz",
+    "Pfeffer"
+  ],
+  "ingredients": [
+    {
+      "name": "Schnell garende Nudeln",
+      "amount": 250,
+      "unit": "g",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Artischockenherzen",
+      "amount": 1,
+      "unit": "kleine Dose",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Getrocknete Tomaten in Öl",
+      "amount": 12,
+      "unit": "Stück",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Knoblauchzehe",
+      "amount": 0.5,
+      "unit": "Stück",
+      "category": "Obst & Gemüse"
+    },
+    {
+      "name": "Parmesan oder vegetarischer Hartkäse",
+      "amount": 100,
+      "unit": "g",
+      "category": "Kühlregal"
+    },
+    {
+      "name": "Olivenöl",
+      "amount": 60,
+      "unit": "ml",
+      "category": "Vorrat und Konserven"
+    },
+    {
+      "name": "Basilikum",
+      "amount": 1,
+      "unit": "Handvoll",
+      "category": "Obst & Gemüse"
+    }
+  ],
+  "steps": [
+    "Nudeln nach Packungsanweisung in reichlich Salzwasser bissfest kochen.",
+    "Währenddessen für die 5-Minuten-Nudelsauce die abgetropften Artischockenherzen und Tomaten in einen Multizerkleinerer geben. Die halbe Knoblauchzehe hineinreiben. Parmesan in grobe Scheiben schneiden und zusammen mit dem Olivenöl hinzufügen. Pfeffern, leicht salzen und alles gründlich vermixen. Tipp: Lassen sich die Zutaten schlecht zerkleinern, 1–2 EL Nudelkochwasser hinzugeben.",
+    "Nudeln abgießen und dabei etwas Kochwasser auffangen. Nudeln in eine Pfanne geben. Saucenpaste und einige Esslöffel Nudelwasser hinzufügen und alles aufkochen. Basilikum grob hacken und dazugeben. 1–2 Minuten köcheln lassen, bis die gewünschte Cremigkeit erreicht ist. Mit Salz und Pfeffer abschmecken.",
+    "Das fertige Nudelgericht nach Belieben mit Parmesanspänen oder Burrata servieren."
+  ]
+}
